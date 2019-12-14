@@ -110,6 +110,12 @@ public class FvmFacade {
 	 * @return {@code true} iff {@code e} is an execution of {@code ts}.
 	 */
 	public <S, A, P> boolean isExecution(TransitionSystem<S, A, P> ts, AlternatingSequence<S, A> e) {
+		//Do we need to check if the states and actions exists in the ts?
+		
+		//check if the first state is reachable
+		if(!(reach(ts).contains(e.head()))){
+			return false;
+		}
 			return e.isExecution(ts);
 	}
 

@@ -131,8 +131,12 @@ public class AlternatingSequence<S, A> {
 
 	//Alon wrote this function
 	public <S, A, P> boolean isExecution(TransitionSystem<S, A, P> ts) {
+		//TO DO - check if the first state is reachable
+		if(this.items.size()==1) {
+			return true;
+		}
 		boolean found = false;
-		for(int i=0;i<this.items.size();i=i+3){
+		for(int i=0;i<this.items.size();i=i+2){
 			for(TSTransition transition : ts.getTransitions()) {
 				if(transition.getFrom().equals(items.get(i)) && transition.getAction().equals(items.get(i+1)) 
 						&& transition.getTo().equals(items.get(i+2))) {
