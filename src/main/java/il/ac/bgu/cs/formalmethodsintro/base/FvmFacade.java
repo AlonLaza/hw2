@@ -110,7 +110,10 @@ public class FvmFacade {
 	 * @return {@code true} iff {@code e} is an execution of {@code ts}.
 	 */
 	public <S, A, P> boolean isExecution(TransitionSystem<S, A, P> ts, AlternatingSequence<S, A> e) {
-		throw new java.lang.UnsupportedOperationException();
+		for(int i=0;i<e.size();i++) {
+			S state = e.head();
+			AlternatingSequence<A, S> = e.tail();
+		}
 	}
 
 	/**
