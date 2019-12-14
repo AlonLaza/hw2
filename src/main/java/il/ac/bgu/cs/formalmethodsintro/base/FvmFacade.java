@@ -362,7 +362,22 @@ public class FvmFacade {
 	 * @return All states reachable in {@code ts}.
 	 */
 	public <S, A> Set<S> reach(TransitionSystem<S, A, ?> ts) {
-		throw new java.lang.UnsupportedOperationException();
+		Set<S> reach_states = ts.getInitialStates();
+		if (reach_states.isEmpty())
+			return new HashSet<>();
+		reach_states.addAll(this.post(ts, reach_states));
+		Set<S> states_to_explore = new HashSet<>(reach_states);
+		states_to_explore.removeAll(ts.getInitialStates());
+		return reach(ts, reach_states, states_to_explore);
+	}
+	
+	public <S, A> Set<S> reach(TransitionSystem<S, A, ?> ts, Set<S> reach_states, Set<S> states_to_explore) {
+		if (states_to_explore.isEmpty())
+			return reach_states;
+		Set<S> explored_states = this.post(ts, states_to_explore);
+		explored_states.removeAll(reach_states);
+		reach_states.addAll(explored_states);
+		return reach(ts, reach_states, explored_states);
 	}
 
 	/**
