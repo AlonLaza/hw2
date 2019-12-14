@@ -130,7 +130,7 @@ public class AlternatingSequence<S, A> {
 	}
 
 	//Alon wrote this function
-	private <S, A, P> boolean isExecution(TransitionSystem<S, A, P> ts) {
+	public <S, A, P> boolean isExecution(TransitionSystem<S, A, P> ts) {
 		boolean found = false;
 		for(int i=0;i<this.items.size();i=i+3){
 			for(TSTransition transition : ts.getTransitions()) {
