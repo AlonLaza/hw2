@@ -480,7 +480,6 @@ public class FvmFacade {
 	 */
 	public <L1, L2, A> ProgramGraph<Pair<L1, L2>, A> interleave(ProgramGraph<L1, A> pg1, ProgramGraph<L2, A> pg2) {
 		ProgramGraph<Pair<L1, L2>, A> interleavedPG = new ProgramGraph<>();
-
 		// Set the initialConditions
 		Set<List<String>> initialConditions = new HashSet<>(pg1.getInitalizations());
 		initialConditions.retainAll(pg2.getInitalizations());
