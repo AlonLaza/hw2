@@ -365,10 +365,7 @@ public class FvmFacade {
 		Set<S> reach_states = ts.getInitialStates();
 		if (reach_states.isEmpty())
 			return new HashSet<>();
-		reach_states.addAll(this.post(ts, reach_states));
-		Set<S> states_to_explore = new HashSet<>(reach_states);
-		states_to_explore.removeAll(ts.getInitialStates());
-		return reach(ts, reach_states, states_to_explore);
+		return reach(ts, new HashSet<>(reach_states), new HashSet<>(reach_states));
 	}
 	
 	public <S, A> Set<S> reach(TransitionSystem<S, A, ?> ts, Set<S> reach_states, Set<S> states_to_explore) {
