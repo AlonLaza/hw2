@@ -477,7 +477,41 @@ public class FvmFacade {
 	 * @return Interleaved program graph.
 	 */
 	public <L1, L2, A> ProgramGraph<Pair<L1, L2>, A> interleave(ProgramGraph<L1, A> pg1, ProgramGraph<L2, A> pg2) {
-		throw new java.lang.UnsupportedOperationException();
+		ProgramGraph<Pair<L1, L2>, A> interleavedPG = new ProgramGraph<>();
+		
+		// Set the initialConditions
+		Set<List<String>> initialConditions = new HashSet<>(pg1.getInitalizations());
+		initialConditions.retainAll(pg2.getInitalizations());
+		interleavedPG.getInitalizations().addAll(initialConditions);
+		
+		// Set all the interleaved locations
+		for(L1 loc1 : pg1.getLocations()) {
+			for(L2 loc2 : pg2.getLocations()) {
+				if (pg1.getInitialLocations().contains(loc1) && pg2.getInitialLocations().contains(loc2))
+					interleavedPG.setInitial(new Pair(loc1, loc2), true);
+				else
+					interleavedPG.addLocation(new Pair(loc1, loc2));
+			}
+		}
+		
+		// Set all the transitions PGTransition
+		for(PGTransition<L1, A> transition1 : pg1.getTransitions()) { 
+			for(PGTransition<L2, A> transition2 : pg2.getTransitions()) {
+				// Transition by pg1
+				interleavedPG.addTransition(new PGTransition<Pair<L1, L2>, A>(
+						new Pair(transition1.getFrom(), transition2.getFrom()),
+						transition1.getCondition(),
+						transition1.getAction(),
+						new Pair(transition1.getTo(), transition2.getFrom())));
+				// Transition by pg2
+				interleavedPG.addTransition(new PGTransition<Pair<L1, L2>, A>(
+						new Pair(transition1.getFrom(), transition2.getFrom()),
+						transition2.getCondition(),
+						transition2.getAction(),
+						new Pair(transition1.getFrom(), transition2.getTo())));
+			}
+		}
+		return interleavedPG;
 	}
 
 	/**
