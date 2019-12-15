@@ -111,13 +111,13 @@ public class FvmFacade {
 	 * @return {@code true} iff {@code e} is an execution of {@code ts}.
 	 */
 	public <S, A, P> boolean isExecution(TransitionSystem<S, A, P> ts, AlternatingSequence<S, A> e) {
-		// Do we need to check if the states and actions exists in the ts?
-
-		// check if the first state is reachable
-		if (!(reach(ts).contains(e.head()))) {
+		if (!(ts.getInitialStates().contains(e.head()))) {
 			return false;
 		}
-		return e.isExecution(ts);
+		if (!(isStateTerminal(ts, e.last()))) {
+			return false;
+		}
+		return e.isExecutionFragment(ts);
 	}
 
 	/**
@@ -133,7 +133,11 @@ public class FvmFacade {
 	 * @return {@code true} iff {@code e} is an execution fragment of {@code ts}.
 	 */
 	public <S, A, P> boolean isExecutionFragment(TransitionSystem<S, A, P> ts, AlternatingSequence<S, A> e) {
-		throw new java.lang.UnsupportedOperationException();
+		// check if the first state is reachable
+		if (!(reach(ts).contains(e.head()))) {
+			return false;
+		}
+		return e.isExecutionFragment(ts);
 	}
 
 	/**
@@ -149,8 +153,11 @@ public class FvmFacade {
 	 * @return {@code true} iff {@code e} is an execution fragment of {@code ts}.
 	 */
 	public <S, A, P> boolean isInitialExecutionFragment(TransitionSystem<S, A, P> ts, AlternatingSequence<S, A> e) {
-		throw new java.lang.UnsupportedOperationException();
-	}
+		if (!(ts.getInitialStates().contains(e.head()))) {
+			return false;
+		}
+		return e.isExecutionFragment(ts);
+		}
 
 	/**
 	 * Checks whether an alternating sequence is a maximal execution fragment of a
@@ -165,8 +172,15 @@ public class FvmFacade {
 	 * @return {@code true} iff {@code e} is a maximal fragment of {@code ts}.
 	 */
 	public <S, A, P> boolean isMaximalExecutionFragment(TransitionSystem<S, A, P> ts, AlternatingSequence<S, A> e) {
-		throw new java.lang.UnsupportedOperationException();
-	}
+		// check if the first state is reachable
+		if (!(reach(ts).contains(e.head()))) {
+			return false;
+		}
+		if (!(isStateTerminal(ts, e.last()))) {
+			return false;
+		}
+		return e.isExecutionFragment(ts);
+		}
 
 	/**
 	 * Checks whether a state in {@code ts} is terminal.
@@ -476,7 +490,13 @@ public class FvmFacade {
 	 */
 	public <L, A> TransitionSystem<Pair<L, Map<String, Object>>, A, String> transitionSystemFromProgramGraph(
 			ProgramGraph<L, A> pg, Set<ActionDef> actionDefs, Set<ConditionDef> conditionDefs) {
-		throw new java.lang.UnsupportedOperationException();
+
+		TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts = new TransitionSystem();
+		// Create states
+		for (L initial_location : pg.getInitialLocations()) {
+			// ts.addInitialState(new Pair(initial_location, ));
+		}
+
 	}
 
 	/**
