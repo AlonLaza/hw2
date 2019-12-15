@@ -23,6 +23,7 @@ import il.ac.bgu.cs.formalmethodsintro.base.util.Pair;
 import il.ac.bgu.cs.formalmethodsintro.base.verification.VerificationResult;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 
 /**
@@ -110,13 +111,13 @@ public class FvmFacade {
 	 * @return {@code true} iff {@code e} is an execution of {@code ts}.
 	 */
 	public <S, A, P> boolean isExecution(TransitionSystem<S, A, P> ts, AlternatingSequence<S, A> e) {
-		//Do we need to check if the states and actions exists in the ts?
-		
-		//check if the first state is reachable
-		if(!(reach(ts).contains(e.head()))){
+		// Do we need to check if the states and actions exists in the ts?
+
+		// check if the first state is reachable
+		if (!(reach(ts).contains(e.head()))) {
 			return false;
 		}
-			return e.isExecution(ts);
+		return e.isExecution(ts);
 	}
 
 	/**
@@ -311,12 +312,12 @@ public class FvmFacade {
 		}
 		Set<S> pre_s_a = new HashSet<>();
 		for (TSTransition transition : ts.getTransitions()) {
-			if (transition.getTo().equals(s) && transition.getAction().equals(a) ) {
+			if (transition.getTo().equals(s) && transition.getAction().equals(a)) {
 				pre_s_a.add((S) transition.getFrom());
 			}
 		}
-		return pre_s_a;	
-		}
+		return pre_s_a;
+	}
 
 	/**
 	 * @param <S> Type of states.
@@ -333,8 +334,8 @@ public class FvmFacade {
 		for (S state : c) {
 			pre_c_a.addAll(pre(ts, state, a));
 		}
-		return pre_c_a;	
-		}
+		return pre_c_a;
+	}
 
 	/**
 	 * Implements the {@code reach(TS)} function.
@@ -362,7 +363,28 @@ public class FvmFacade {
 	 */
 	public <S1, S2, A, P> TransitionSystem<Pair<S1, S2>, A, P> interleave(TransitionSystem<S1, A, P> ts1,
 			TransitionSystem<S2, A, P> ts2) {
-		throw new java.lang.UnsupportedOperationException();
+
+		TransitionSystem<Pair<S1, S2>, A, P> interleave_transition_system = new TransitionSystem();
+
+		// Creating the new states set
+		CreatingInterleaveStates(interleave_transition_system, ts1, ts2);
+
+		// Creating the action set
+		CreatingInterleaveActions(interleave_transition_system, ts1, ts2);
+
+		// Creating transitions
+		CreatingInterleaveTransitions(interleave_transition_system, ts1, ts2);
+
+		// Creating the initial states
+		CreatingInterleaveInitialStates(interleave_transition_system, ts1, ts2);
+
+		// Creating the atomic Propositions
+		CreatingInterleavePropositions(interleave_transition_system, ts1, ts2);
+
+		// Creating the new labeling function
+		CreatingInterleaveLabeling(interleave_transition_system, ts1, ts2);
+
+		return interleave_transition_system;
 	}
 
 	/**
@@ -380,7 +402,29 @@ public class FvmFacade {
 	 */
 	public <S1, S2, A, P> TransitionSystem<Pair<S1, S2>, A, P> interleave(TransitionSystem<S1, A, P> ts1,
 			TransitionSystem<S2, A, P> ts2, Set<A> handShakingActions) {
-		throw new java.lang.UnsupportedOperationException();
+
+		TransitionSystem<Pair<S1, S2>, A, P> interleave_transition_system = new TransitionSystem();
+
+		// Creating the new states set
+		CreatingInterleaveStates(interleave_transition_system, ts1, ts2);
+
+		// Creating the action set
+		CreatingInterleaveActions(interleave_transition_system, ts1, ts2);
+
+		// Creating transitions
+		CreatingInterleaveSynchronizeTransitions(interleave_transition_system, ts1, ts2, handShakingActions);
+
+		// Creating the initial states
+		CreatingInterleaveInitialStates(interleave_transition_system, ts1, ts2);
+
+		// Creating the atomic Propositions
+		CreatingInterleavePropositions(interleave_transition_system, ts1, ts2);
+
+		// Creating the new labeling function
+		CreatingInterleaveLabeling(interleave_transition_system, ts1, ts2);
+
+		return interleave_transition_system;
+
 	}
 
 	/**
@@ -549,4 +593,114 @@ public class FvmFacade {
 		throw new java.lang.UnsupportedOperationException();
 	}
 
+	public <S1, S2, A, P> void CreatingInterleaveStates(
+			TransitionSystem<Pair<S1, S2>, A, P> interleave_transition_system, TransitionSystem<S1, A, P> ts1,
+			TransitionSystem<S2, A, P> ts2) {
+		for (S1 state_s1 : ts1.getStates()) {
+			for (S2 state_s2 : ts2.getStates()) {
+				interleave_transition_system.addState(new Pair(state_s1, state_s2));
+			}
+		}
+	}
+
+	public <S1, S2, A, P> void CreatingInterleaveActions(
+			TransitionSystem<Pair<S1, S2>, A, P> interleave_transition_system, TransitionSystem<S1, A, P> ts1,
+			TransitionSystem<S2, A, P> ts2) {
+		interleave_transition_system.addAllActions(ts1.getActions());
+		interleave_transition_system.addAllActions(ts2.getActions());
+	}
+
+	public <S1, S2, A, P> void CreatingInterleaveTransitions(
+			TransitionSystem<Pair<S1, S2>, A, P> interleave_transition_system, TransitionSystem<S1, A, P> ts1,
+			TransitionSystem<S2, A, P> ts2) {
+
+		// Adding the transitions from ts1
+		for (TSTransition transition_ts1 : ts1.getTransitions()) {
+			for (Pair<S1, S2> state : interleave_transition_system.getStates()) {
+				if (state.first.equals(transition_ts1.getFrom())) {
+					interleave_transition_system.addTransition(new TSTransition(state, transition_ts1.getAction(),
+							new Pair(transition_ts1.getTo(), state.second)));
+				}
+			}
+		}
+		// Adding the transitions from ts2
+		for (TSTransition transition_ts2 : ts2.getTransitions()) {
+			for (Pair<S1, S2> state : interleave_transition_system.getStates()) {
+				if (state.second.equals(transition_ts2.getFrom())) {
+					interleave_transition_system.addTransition(new TSTransition(state, transition_ts2.getAction(),
+							new Pair(state.first, transition_ts2.getTo())));
+				}
+			}
+		}
+	}
+
+	public <S1, S2, A, P> void CreatingInterleaveInitialStates(
+			TransitionSystem<Pair<S1, S2>, A, P> interleave_transition_system, TransitionSystem<S1, A, P> ts1,
+			TransitionSystem<S2, A, P> ts2) {
+		for (Pair<S1, S2> state : interleave_transition_system.getStates()) {
+			if ((ts1.getInitialStates().contains(state.first)) && (ts2.getInitialStates().contains(state.second))) {
+				interleave_transition_system.addInitialState(state);
+			}
+		}
+	}
+
+	public <S1, S2, A, P> void CreatingInterleavePropositions(
+			TransitionSystem<Pair<S1, S2>, A, P> interleave_transition_system, TransitionSystem<S1, A, P> ts1,
+			TransitionSystem<S2, A, P> ts2) {
+		interleave_transition_system.addAllAtomicPropositions(ts1.getAtomicPropositions());
+		interleave_transition_system.addAllAtomicPropositions(ts2.getAtomicPropositions());
+	}
+
+	public <S1, S2, A, P> void CreatingInterleaveLabeling(
+			TransitionSystem<Pair<S1, S2>, A, P> interleave_transition_system, TransitionSystem<S1, A, P> ts1,
+			TransitionSystem<S2, A, P> ts2) {
+		for (Pair<S1, S2> interleave_state : interleave_transition_system.getStates()) {
+			for (P atomic_pro : ts1.getLabel(interleave_state.first)) {
+				interleave_transition_system.addToLabel(interleave_state, atomic_pro);
+			}
+			for (P atomic_pro : ts2.getLabel(interleave_state.second)) {
+				interleave_transition_system.addToLabel(interleave_state, atomic_pro);
+			}
+		}
+	}
+
+	public <S1, S2, A, P> void CreatingInterleaveSynchronizeTransitions(
+			TransitionSystem<Pair<S1, S2>, A, P> interleave_transition_system, TransitionSystem<S1, A, P> ts1,
+			TransitionSystem<S2, A, P> ts2, Set<A> handShakingActions) {
+
+		// Adding the transitions from ts1
+		for (TSTransition transition_ts1 : ts1.getTransitions()) {
+			for (Pair<S1, S2> state : interleave_transition_system.getStates()) {
+				if (state.first.equals(transition_ts1.getFrom())) {
+					if (!(handShakingActions.contains(transition_ts1.getAction()))) {
+						interleave_transition_system.addTransition(new TSTransition(state, transition_ts1.getAction(),
+								new Pair(transition_ts1.getTo(), state.second)));
+					}
+				}
+			}
+		}
+		// Adding the transitions from ts2
+		for (TSTransition transition_ts2 : ts2.getTransitions()) {
+			for (Pair<S1, S2> state : interleave_transition_system.getStates()) {
+				if (state.second.equals(transition_ts2.getFrom())) {
+					if (!(handShakingActions.contains(transition_ts2.getAction()))) {
+						interleave_transition_system.addTransition(new TSTransition(state, transition_ts2.getAction(),
+								new Pair(state.first, transition_ts2.getTo())));
+					}
+				}
+			}
+		}
+		for (A synch_action : handShakingActions) {
+			for (TSTransition transition_ts1 : ts1.getTransitions()) {
+				for (TSTransition transition_ts2 : ts2.getTransitions()) {
+					if (ts1.getActions().equals(synch_action) && ts2.getActions().equals(synch_action)) {
+						interleave_transition_system.addTransition(
+								new TSTransition(new Pair(transition_ts1.getFrom(), transition_ts2.getFrom()),
+										synch_action, new Pair(transition_ts1.getTo(), transition_ts2.getTo())));
+					}
+				}
+			}
+
+		}
+	}
 }
