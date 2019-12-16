@@ -13,6 +13,7 @@ import il.ac.bgu.cs.formalmethodsintro.base.exceptions.StateNotFoundException;
 import il.ac.bgu.cs.formalmethodsintro.base.ltl.LTL;
 import il.ac.bgu.cs.formalmethodsintro.base.programgraph.ActionDef;
 import il.ac.bgu.cs.formalmethodsintro.base.programgraph.ConditionDef;
+import il.ac.bgu.cs.formalmethodsintro.base.programgraph.PGTransition;
 import il.ac.bgu.cs.formalmethodsintro.base.programgraph.ParserBasedActDef;
 import il.ac.bgu.cs.formalmethodsintro.base.programgraph.ParserBasedCondDef;
 import il.ac.bgu.cs.formalmethodsintro.base.programgraph.ProgramGraph;
@@ -25,6 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 
 /**
  * Interface for the entry point class to the HW in this class. Our
@@ -157,7 +159,7 @@ public class FvmFacade {
 			return false;
 		}
 		return e.isExecutionFragment(ts);
-		}
+	}
 
 	/**
 	 * Checks whether an alternating sequence is a maximal execution fragment of a
@@ -180,7 +182,7 @@ public class FvmFacade {
 			return false;
 		}
 		return e.isExecutionFragment(ts);
-		}
+	}
 
 	/**
 	 * Checks whether a state in {@code ts} is terminal.
@@ -492,11 +494,77 @@ public class FvmFacade {
 			ProgramGraph<L, A> pg, Set<ActionDef> actionDefs, Set<ConditionDef> conditionDefs) {
 
 		TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts = new TransitionSystem();
-		// Create states
-		for (L initial_location : pg.getInitialLocations()) {
-			// ts.addInitialState(new Pair(initial_location, ));
+
+		// Create Eval
+		Set<Map<String, Object>> eval = new HashSet();
+		for (List<String> initializtion : pg.getInitalizations()) {
+			Map<String, Object> atomic_eval = new HashMap();
+			for (String atomic_init : initializtion) {
+				atomic_eval.putIfAbsent((atomic_init.substring(0, atomic_init.indexOf(':')).replaceAll("\\s+", "")),
+						Integer.parseInt((atomic_init.substring(atomic_init.indexOf('=') + 1)).replaceAll("\\s+", "")));
+			}
+			eval.add(atomic_eval);
 		}
 
+		// Creating locations
+		for (L loc : pg.getLocations()) {
+			for (Map<String, Object> atomic_eval : eval) {
+				ts.addState(new Pair(loc, atomic_eval));
+			}
+		}
+		// Creating initial locations
+		for (Pair<L, Map<String, Object>> state : ts.getStates()) {
+			if (pg.getInitialLocations().contains(state.first)) {
+				ts.addInitialState(state);
+			}
+		}
+
+		// Creating actions
+		for (PGTransition pg_transition : pg.getTransitions()) {
+			ts.addAction((A) pg_transition.getAction());
+		}
+
+		// Creating list of all the conditions
+		Set<String> conditions = new HashSet<String>();
+		for (PGTransition transition : pg.getTransitions()) {
+			conditions.add(transition.getCondition());
+		}
+
+		// Add propositions and Labeling
+		for (Pair<L, Map<String, Object>> state : ts.getStates()) {
+			labelNew_TS_stateFromGraph(ts, state, conditions, conditionDefs);
+		}
+
+
+		//Create the list state to explore
+		List<Pair<L, Map<String, Object>>> states_to_explore = new LinkedList<>();
+		states_to_explore.addAll(ts.getInitialStates());
+		
+		// Create transitions
+		state_and_transition_exploration(states_to_explore, ts, pg, actionDefs, conditionDefs, conditions);
+		
+		return ts;
+	}
+
+	public <L, A> void state_and_transition_exploration(List<Pair<L, Map<String, Object>>> states_to_explore,
+			TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts, ProgramGraph<L, A> pg,
+			Set<ActionDef> actionDefs, Set<ConditionDef> conditionDefs, Set<String> conditions) {
+		
+		Pair<L, Map<String, Object>> state_to_explore = states_to_explore.remove(0);
+		for (PGTransition transition : pg.getTransitions()) {
+			if (transition.getFrom().equals(state_to_explore.first)
+					&& ConditionDef.evaluate(conditionDefs, state_to_explore.second, transition.getCondition())) {
+				Map<String, Object> newEval = ActionDef.effect(actionDefs, state_to_explore.second, transition.getAction());
+				Pair<L, Map<String, Object>> newState = new Pair(transition.getTo(), newEval);
+				ts.addState(newState);
+				labelNew_TS_stateFromGraph(ts, newState, conditions, conditionDefs);
+				ts.addTransition(new TSTransition(state_to_explore, (A) transition.getAction(), newState));
+				states_to_explore.add(newState);
+			}
+		}
+		if(states_to_explore.size()>0) {
+			state_and_transition_exploration(states_to_explore, ts, pg, actionDefs, conditionDefs, conditions);
+		}
 	}
 
 	/**
@@ -690,9 +758,9 @@ public class FvmFacade {
 
 		// Adding the transitions from ts1
 		for (TSTransition transition_ts1 : ts1.getTransitions()) {
-			for (Pair<S1, S2> state : interleave_transition_system.getStates()) {
-				if (state.first.equals(transition_ts1.getFrom())) {
-					if (!(handShakingActions.contains(transition_ts1.getAction()))) {
+			if (!(handShakingActions.contains(transition_ts1.getAction()))) {
+				for (Pair<S1, S2> state : interleave_transition_system.getStates()) {
+					if (state.first.equals(transition_ts1.getFrom())) {
 						interleave_transition_system.addTransition(new TSTransition(state, transition_ts1.getAction(),
 								new Pair(transition_ts1.getTo(), state.second)));
 					}
@@ -701,9 +769,9 @@ public class FvmFacade {
 		}
 		// Adding the transitions from ts2
 		for (TSTransition transition_ts2 : ts2.getTransitions()) {
-			for (Pair<S1, S2> state : interleave_transition_system.getStates()) {
-				if (state.second.equals(transition_ts2.getFrom())) {
-					if (!(handShakingActions.contains(transition_ts2.getAction()))) {
+			if (!(handShakingActions.contains(transition_ts2.getAction()))) {
+				for (Pair<S1, S2> state : interleave_transition_system.getStates()) {
+					if (state.second.equals(transition_ts2.getFrom())) {
 						interleave_transition_system.addTransition(new TSTransition(state, transition_ts2.getAction(),
 								new Pair(state.first, transition_ts2.getTo())));
 					}
@@ -713,7 +781,8 @@ public class FvmFacade {
 		for (A synch_action : handShakingActions) {
 			for (TSTransition transition_ts1 : ts1.getTransitions()) {
 				for (TSTransition transition_ts2 : ts2.getTransitions()) {
-					if (ts1.getActions().equals(synch_action) && ts2.getActions().equals(synch_action)) {
+					if (transition_ts1.getAction().equals(synch_action)
+							&& transition_ts2.getAction().equals(synch_action)) {
 						interleave_transition_system.addTransition(
 								new TSTransition(new Pair(transition_ts1.getFrom(), transition_ts2.getFrom()),
 										synch_action, new Pair(transition_ts1.getTo(), transition_ts2.getTo())));
@@ -723,4 +792,15 @@ public class FvmFacade {
 
 		}
 	}
+
+	public <L, A> void labelNew_TS_stateFromGraph(TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts,
+			Pair<L, Map<String, Object>> state, Set<String> conditions, Set<ConditionDef> conditionDefs) {
+		ts.addToLabel(state, (String) state.first);
+		for (String condition : conditions) {
+			if (ConditionDef.evaluate(conditionDefs, state.second, condition)) {
+				ts.addToLabel(state, condition);
+			}
+		}
+	}
+
 }

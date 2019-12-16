@@ -131,7 +131,6 @@ public class AlternatingSequence<S, A> {
 
 	//Alon wrote this function
 	public <S, A, P> boolean isExecutionFragment(TransitionSystem<S, A, P> ts) {
-		//TO DO - check if the first state is reachable
 		if(this.items.size()==1) {
 			return true;
 		}
