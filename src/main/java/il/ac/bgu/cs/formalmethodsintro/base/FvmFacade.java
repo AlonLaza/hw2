@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
-import java.util.List;
 
 import il.ac.bgu.cs.formalmethodsintro.base.automata.Automaton;
 import il.ac.bgu.cs.formalmethodsintro.base.automata.MultiColorAutomaton;
@@ -24,7 +23,7 @@ import il.ac.bgu.cs.formalmethodsintro.base.transitionsystem.TSTransition;
 import il.ac.bgu.cs.formalmethodsintro.base.transitionsystem.TransitionSystem;
 import il.ac.bgu.cs.formalmethodsintro.base.util.Pair;
 import il.ac.bgu.cs.formalmethodsintro.base.verification.VerificationResult;
-import java.util.Collection;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -56,10 +55,10 @@ public class FvmFacade {
 	 * given p and α there exists only a single tuple (p,α,q) in →. Note that this
 	 * must be true even for non-reachable states.
 	 *
-	 * @param    <S> Type of states.
-	 * @param    <A> Type of actions.
-	 * @param    <P> Type of atomic propositions.
-	 * @param ts The transition system being tested.
+	 * @param <S> Type of states.
+	 * @param <A> Type of actions.
+	 * @param <P> Type of atomic propositions.
+	 * @param ts  The transition system being tested.
 	 * @return {@code true} iff the action is deterministic.
 	 */
 	public <S, A, P> boolean isActionDeterministic(TransitionSystem<S, A, P> ts) {
@@ -79,10 +78,10 @@ public class FvmFacade {
 	 * Checks whether an action is ap-deterministic (as defined in class), in the
 	 * context of a given {@link TransitionSystem}.
 	 *
-	 * @param    <S> Type of states.
-	 * @param    <A> Type of actions.
-	 * @param    <P> Type of atomic propositions.
-	 * @param ts The transition system being tested.
+	 * @param <S> Type of states.
+	 * @param <A> Type of actions.
+	 * @param <P> Type of atomic propositions.
+	 * @param ts  The transition system being tested.
 	 * @return {@code true} iff the action is ap-deterministic.
 	 */
 	public <S, A, P> boolean isAPDeterministic(TransitionSystem<S, A, P> ts) {
@@ -128,12 +127,12 @@ public class FvmFacade {
 	 * Checks whether an alternating sequence is an execution fragment of a
 	 * {@link TransitionSystem}, as defined in class.
 	 *
-	 * @param    <S> Type of states.
-	 * @param    <A> Type of actions.
-	 * @param    <P> Type of atomic propositions.
-	 * @param ts The transition system being tested.
-	 * @param e  The sequence that may or may not be an execution fragment of
-	 *           {@code ts}.
+	 * @param <S> Type of states.
+	 * @param <A> Type of actions.
+	 * @param <P> Type of atomic propositions.
+	 * @param ts  The transition system being tested.
+	 * @param e   The sequence that may or may not be an execution fragment of
+	 *            {@code ts}.
 	 * @return {@code true} iff {@code e} is an execution fragment of {@code ts}.
 	 */
 	public <S, A, P> boolean isExecutionFragment(TransitionSystem<S, A, P> ts, AlternatingSequence<S, A> e) {
@@ -148,12 +147,12 @@ public class FvmFacade {
 	 * Checks whether an alternating sequence is an initial execution fragment of a
 	 * {@link TransitionSystem}, as defined in class.
 	 *
-	 * @param    <S> Type of states.
-	 * @param    <A> Type of actions.
-	 * @param    <P> Type of atomic propositions.
-	 * @param ts The transition system being tested.
-	 * @param e  The sequence that may or may not be an initial execution fragment
-	 *           of {@code ts}.
+	 * @param <S> Type of states.
+	 * @param <A> Type of actions.
+	 * @param <P> Type of atomic propositions.
+	 * @param ts  The transition system being tested.
+	 * @param e   The sequence that may or may not be an initial execution fragment
+	 *            of {@code ts}.
 	 * @return {@code true} iff {@code e} is an execution fragment of {@code ts}.
 	 */
 	public <S, A, P> boolean isInitialExecutionFragment(TransitionSystem<S, A, P> ts, AlternatingSequence<S, A> e) {
@@ -167,12 +166,12 @@ public class FvmFacade {
 	 * Checks whether an alternating sequence is a maximal execution fragment of a
 	 * {@link TransitionSystem}, as defined in class.
 	 *
-	 * @param    <S> Type of states.
-	 * @param    <A> Type of actions.
-	 * @param    <P> Type of atomic propositions.
-	 * @param ts The transition system being tested.
-	 * @param e  The sequence that may or may not be a maximal execution fragment of
-	 *           {@code ts}.
+	 * @param <S> Type of states.
+	 * @param <A> Type of actions.
+	 * @param <P> Type of atomic propositions.
+	 * @param ts  The transition system being tested.
+	 * @param e   The sequence that may or may not be a maximal execution fragment
+	 *            of {@code ts}.
 	 * @return {@code true} iff {@code e} is a maximal fragment of {@code ts}.
 	 */
 	public <S, A, P> boolean isMaximalExecutionFragment(TransitionSystem<S, A, P> ts, AlternatingSequence<S, A> e) {
@@ -189,10 +188,10 @@ public class FvmFacade {
 	/**
 	 * Checks whether a state in {@code ts} is terminal.
 	 *
-	 * @param    <S> Type of states.
-	 * @param    <A> Type of actions.
-	 * @param ts Transition system of {@code s}.
-	 * @param s  The state being tested for terminality.
+	 * @param <S> Type of states.
+	 * @param <A> Type of actions.
+	 * @param ts  Transition system of {@code s}.
+	 * @param s   The state being tested for terminality.
 	 * @return {@code true} iff state {@code s} is terminal in {@code ts}.
 	 * @throws StateNotFoundException if {@code s} is not a state of {@code ts}.
 	 */
@@ -204,9 +203,9 @@ public class FvmFacade {
 	}
 
 	/**
-	 * @param    <S> Type of states.
-	 * @param ts Transition system of {@code s}.
-	 * @param s  A state in {@code ts}.
+	 * @param <S> Type of states.
+	 * @param ts  Transition system of {@code s}.
+	 * @param s   A state in {@code ts}.
 	 * @return All the states in {@code Post(s)}, in the context of {@code ts}.
 	 * @throws StateNotFoundException if {@code s} is not a state of {@code ts}.
 	 */
@@ -224,9 +223,9 @@ public class FvmFacade {
 	}
 
 	/**
-	 * @param    <S> Type of states.
-	 * @param ts Transition system of {@code s}.
-	 * @param c  States in {@code ts}.
+	 * @param <S> Type of states.
+	 * @param ts  Transition system of {@code s}.
+	 * @param c   States in {@code ts}.
 	 * @return All the states in {@code Post(s)} where {@code s} is a member of
 	 *         {@code c}, in the context of {@code ts}.
 	 * @throws StateNotFoundException if {@code s} is not a state of {@code ts}.
@@ -240,11 +239,11 @@ public class FvmFacade {
 	}
 
 	/**
-	 * @param    <S> Type of states.
-	 * @param    <A> Type of actions.
-	 * @param ts Transition system of {@code s}.
-	 * @param s  A state in {@code ts}.
-	 * @param a  An action.
+	 * @param <S> Type of states.
+	 * @param <A> Type of actions.
+	 * @param ts  Transition system of {@code s}.
+	 * @param s   A state in {@code ts}.
+	 * @param a   An action.
 	 * @return All the states that {@code ts} might transition to from {@code s},
 	 *         when action {@code a} is selected.
 	 * @throws StateNotFoundException if {@code s} is not a state of {@code ts}.
@@ -263,11 +262,11 @@ public class FvmFacade {
 	}
 
 	/**
-	 * @param    <S> Type of states.
-	 * @param    <A> Type of actions.
-	 * @param ts Transition system of {@code s}.
-	 * @param c  Set of states in {@code ts}.
-	 * @param a  An action.
+	 * @param <S> Type of states.
+	 * @param <A> Type of actions.
+	 * @param ts  Transition system of {@code s}.
+	 * @param c   Set of states in {@code ts}.
+	 * @param a   An action.
 	 * @return All the states that {@code ts} might transition to from any state in
 	 *         {@code c}, when action {@code a} is selected.
 	 */
@@ -280,9 +279,9 @@ public class FvmFacade {
 	}
 
 	/**
-	 * @param    <S> Type of states.
-	 * @param ts Transition system of {@code s}.
-	 * @param s  A state in {@code ts}.
+	 * @param <S> Type of states.
+	 * @param ts  Transition system of {@code s}.
+	 * @param s   A state in {@code ts}.
 	 * @return All the states in {@code Pre(s)}, in the context of {@code ts}.
 	 */
 	public <S> Set<S> pre(TransitionSystem<S, ?, ?> ts, S s) {
@@ -299,9 +298,9 @@ public class FvmFacade {
 	}
 
 	/**
-	 * @param    <S> Type of states.
-	 * @param ts Transition system of {@code s}.
-	 * @param c  States in {@code ts}.
+	 * @param <S> Type of states.
+	 * @param ts  Transition system of {@code s}.
+	 * @param c   States in {@code ts}.
 	 * @return All the states in {@code Pre(s)} where {@code s} is a member of
 	 *         {@code c}, in the context of {@code ts}.
 	 * @throws StateNotFoundException if {@code s} is not a state of {@code ts}.
@@ -315,11 +314,11 @@ public class FvmFacade {
 	}
 
 	/**
-	 * @param    <S> Type of states.
-	 * @param    <A> Type of actions.
-	 * @param ts Transition system of {@code s}.
-	 * @param s  A state in {@code ts}.
-	 * @param a  An action.
+	 * @param <S> Type of states.
+	 * @param <A> Type of actions.
+	 * @param ts  Transition system of {@code s}.
+	 * @param s   A state in {@code ts}.
+	 * @param a   An action.
 	 * @return All the states that {@code ts} might transitioned from, when in
 	 *         {@code s}, and the last action was {@code a}.
 	 * @throws StateNotFoundException if {@code s} is not a state of {@code ts}.
@@ -338,11 +337,11 @@ public class FvmFacade {
 	}
 
 	/**
-	 * @param    <S> Type of states.
-	 * @param    <A> Type of actions.
-	 * @param ts Transition system of {@code s}.
-	 * @param c  Set of states in {@code ts}.
-	 * @param a  An action.
+	 * @param <S> Type of states.
+	 * @param <A> Type of actions.
+	 * @param ts  Transition system of {@code s}.
+	 * @param c   Set of states in {@code ts}.
+	 * @param a   An action.
 	 * @return All the states that {@code ts} might transitioned from, when in any
 	 *         state in {@code c}, and the last action was {@code a}.
 	 * @throws StateNotFoundException if {@code s} is not a state of {@code ts}.
@@ -358,9 +357,9 @@ public class FvmFacade {
 	/**
 	 * Implements the {@code reach(TS)} function.
 	 *
-	 * @param    <S> Type of states.
-	 * @param    <A> Type of actions.
-	 * @param ts Transition system of {@code s}.
+	 * @param <S> Type of states.
+	 * @param <A> Type of actions.
+	 * @param ts  Transition system of {@code s}.
 	 * @return All states reachable in {@code ts}.
 	 */
 	public <S, A> Set<S> reach(TransitionSystem<S, A, ?> ts) {
@@ -382,12 +381,12 @@ public class FvmFacade {
 	/**
 	 * Compute the synchronous product of two transition systems.
 	 *
-	 * @param     <S1> Type of states in the first system.
-	 * @param     <S2> Type of states in the first system.
-	 * @param     <A> Type of actions (in both systems).
-	 * @param     <P> Type of atomic propositions (in both systems).
-	 * @param ts1 The first transition system.
-	 * @param ts2 The second transition system.
+	 * @param <S1> Type of states in the first system.
+	 * @param <S2> Type of states in the first system.
+	 * @param <A>  Type of actions (in both systems).
+	 * @param <P>  Type of atomic propositions (in both systems).
+	 * @param ts1  The first transition system.
+	 * @param ts2  The second transition system.
 	 *
 	 * @return A transition system that represents the product of the two.
 	 */
@@ -420,10 +419,10 @@ public class FvmFacade {
 	/**
 	 * Compute the synchronous product of two transition systems.
 	 *
-	 * @param                    <S1> Type of states in the first system.
-	 * @param                    <S2> Type of states in the first system.
-	 * @param                    <A> Type of actions (in both systems).
-	 * @param                    <P> Type of atomic propositions (in both systems).
+	 * @param <S1>               Type of states in the first system.
+	 * @param <S2>               Type of states in the first system.
+	 * @param <A>                Type of actions (in both systems).
+	 * @param <P>                Type of atomic propositions (in both systems).
 	 * @param ts1                The first transition system.
 	 * @param ts2                The second transition system.
 	 * @param handShakingActions Set of actions both systems perform together.
@@ -471,11 +470,11 @@ public class FvmFacade {
 	/**
 	 * Interleaves two program graphs.
 	 *
-	 * @param     <L1> Type of locations in the first graph.
-	 * @param     <L2> Type of locations in the second graph.
-	 * @param     <A> Type of actions in BOTH GRAPHS.
-	 * @param pg1 The first program graph.
-	 * @param pg2 The second program graph.
+	 * @param <L1> Type of locations in the first graph.
+	 * @param <L2> Type of locations in the second graph.
+	 * @param <A>  Type of actions in BOTH GRAPHS.
+	 * @param pg1  The first program graph.
+	 * @param pg2  The second program graph.
 	 * @return Interleaved program graph.
 	 */
 	public <L1, L2, A> ProgramGraph<Pair<L1, L2>, A> interleave(ProgramGraph<L1, A> pg1, ProgramGraph<L2, A> pg2) {
@@ -497,17 +496,25 @@ public class FvmFacade {
 
 		// Set all the transitions PGTransition
 		for (PGTransition<L1, A> transition1 : pg1.getTransitions()) {
-			for (PGTransition<L2, A> transition2 : pg2.getTransitions()) {
-				// Transition by pg1
-				interleavedPG.addTransition(new PGTransition<Pair<L1, L2>, A>(
-						new Pair(transition1.getFrom(), transition2.getFrom()), transition1.getCondition(),
-						transition1.getAction(), new Pair(transition1.getTo(), transition2.getFrom())));
-				// Transition by pg2
-				interleavedPG.addTransition(new PGTransition<Pair<L1, L2>, A>(
-						new Pair(transition1.getFrom(), transition2.getFrom()), transition2.getCondition(),
-						transition2.getAction(), new Pair(transition1.getFrom(), transition2.getTo())));
+			for (Pair<L1, L2> state : interleavedPG.getLocations()) {
+				if (transition1.getFrom().equals(state.first)) {
+					interleavedPG.addTransition(new PGTransition<Pair<L1, L2>, A>(
+							new Pair(transition1.getFrom(), state.second), transition1.getCondition(),
+							transition1.getAction(), new Pair(transition1.getTo(), state.second)));
+				}
 			}
 		}
+
+		for (PGTransition<L2, A> transition2 : pg2.getTransitions()) {
+			for (Pair<L1, L2> state : interleavedPG.getLocations()) {
+				if (transition2.getFrom().equals(state.second)) {
+					interleavedPG.addTransition(new PGTransition<Pair<L1, L2>, A>(
+							new Pair(state.first, transition2.getFrom()), transition2.getCondition(),
+							transition2.getAction(), new Pair(state.first, transition2.getTo())));
+				}
+			}
+		}
+
 		return interleavedPG;
 	}
 
@@ -522,30 +529,30 @@ public class FvmFacade {
 		TransitionSystem<Pair<Map<String, Boolean>, Map<String, Boolean>>, Map<String, Boolean>, Object> tsFromCircuit = new TransitionSystem<>();
 		List<Map<String, Boolean>> inputsCombinations = getAllCombinations(c.getInputPortNames());
 		List<Map<String, Boolean>> registersCombinations = getAllCombinations(c.getRegisterNames());
-		for(Map<String, Boolean> inps_comb : inputsCombinations) {
-			for(Map<String, Boolean> regs_comb : registersCombinations) {
+		for (Map<String, Boolean> inps_comb : inputsCombinations) {
+			for (Map<String, Boolean> regs_comb : registersCombinations) {
 				Pair<Map<String, Boolean>, Map<String, Boolean>> newState = new Pair(inps_comb, regs_comb);
 				tsFromCircuit.addState(newState);
-				
+
 				// Set the AP - inputs
 				for (Map.Entry<String, Boolean> entry : inps_comb.entrySet()) {
 					if (entry.getValue())
 						tsFromCircuit.addToLabel(newState, entry.getKey());
 				}
-				
+
 				// Set the AP - registers
 				for (Map.Entry<String, Boolean> entry : regs_comb.entrySet()) {
 					if (entry.getValue())
 						tsFromCircuit.addToLabel(newState, entry.getKey());
 				}
-				
-				// Set the AP - outputs 
+
+				// Set the AP - outputs
 				Map<String, Boolean> outputs = c.computeOutputs(inps_comb, regs_comb);
 				for (Map.Entry<String, Boolean> entry : outputs.entrySet()) {
 					if (entry.getValue())
 						tsFromCircuit.addToLabel(newState, entry.getKey());
 				}
-				
+
 				// Set initialized states
 				Boolean initialRegs = true;
 				for (Map.Entry<String, Boolean> entry : regs_comb.entrySet()) {
@@ -554,13 +561,13 @@ public class FvmFacade {
 						break;
 					}
 				}
-				
+
 				if (initialRegs)
 					tsFromCircuit.addInitialState(newState);
-				
+
 				// Set the transitions and actions
 				Map<String, Boolean> newRegistersValues = c.updateRegisters(inps_comb, regs_comb);
-				for(Map<String, Boolean> comb : inputsCombinations) {
+				for (Map<String, Boolean> comb : inputsCombinations) {
 					tsFromCircuit.addTransition(new TSTransition<>(newState, comb, new Pair(comb, newRegistersValues)));
 				}
 			}
@@ -571,7 +578,7 @@ public class FvmFacade {
 	public List<Map<String, Boolean>> getAllCombinations(Set<String> setToIterate) {
 		List<Map<String, Boolean>> combinations = new ArrayList<>();
 		int numOfIterationsForInputs = (int) Math.pow(2, setToIterate.size());
-		for (int i=0; i<numOfIterationsForInputs; i++) {
+		for (int i = 0; i < numOfIterationsForInputs; i++) {
 			Map<String, Boolean> inputsMap = new HashMap<>();
 			String binaryNum = Integer.toString(i, 2);
 			List<String> inputs = new ArrayList<>();
@@ -592,8 +599,8 @@ public class FvmFacade {
 	/**
 	 * Creates a {@link TransitionSystem} from a program graph.
 	 *
-	 * @param               <L> Type of program graph locations.
-	 * @param               <A> Type of program graph actions.
+	 * @param <L>           Type of program graph locations.
+	 * @param <A>           Type of program graph actions.
 	 * @param pg            The program graph to be translated into a transition
 	 *                      system.
 	 * @param actionDefs    Defines the effect of each action.
@@ -680,9 +687,9 @@ public class FvmFacade {
 	/**
 	 * Creates a transition system representing channel system {@code cs}.
 	 *
-	 * @param    <L> Type of locations in the channel system.
-	 * @param    <A> Type of actions in the channel system.
-	 * @param cs The channel system to be translated into a transition system.
+	 * @param <L> Type of locations in the channel system.
+	 * @param <A> Type of actions in the channel system.
+	 * @param cs  The channel system to be translated into a transition system.
 	 * @return A transition system representing {@code cs}.
 	 */
 	public <L, A> TransitionSystem<Pair<List<L>, Map<String, Object>>, A, String> transitionSystemFromChannelSystem(
@@ -734,13 +741,13 @@ public class FvmFacade {
 	/**
 	 * Creates a transition system from a transition system and an automaton.
 	 *
-	 * @param     <Sts> Type of states in the transition system.
-	 * @param     <Saut> Type of states in the automaton.
-	 * @param     <A> Type of actions in the transition system.
-	 * @param     <P> Type of atomic propositions in the transition system, which is
-	 *            also the type of the automaton alphabet.
-	 * @param ts  The transition system.
-	 * @param aut The automaton.
+	 * @param <Sts>  Type of states in the transition system.
+	 * @param <Saut> Type of states in the automaton.
+	 * @param <A>    Type of actions in the transition system.
+	 * @param <P>    Type of atomic propositions in the transition system, which is
+	 *               also the type of the automaton alphabet.
+	 * @param ts     The transition system.
+	 * @param aut    The automaton.
 	 * @return The product of {@code ts} with {@code aut}.
 	 */
 	public <Sts, Saut, A, P> TransitionSystem<Pair<Sts, Saut>, A, Saut> product(TransitionSystem<Sts, A, P> ts,
@@ -751,13 +758,14 @@ public class FvmFacade {
 	/**
 	 * Verify that a system satisfies an omega regular property.
 	 *
-	 * @param     <S> Type of states in the transition system.
-	 * @param     <Saut> Type of states in the automaton.
-	 * @param     <A> Type of actions in the transition system.
-	 * @param     <P> Type of atomic propositions in the transition system, which is
-	 *            also the type of the automaton alphabet.
-	 * @param ts  The transition system.
-	 * @param aut A Büchi automaton for the words that do not satisfy the property.
+	 * @param <S>    Type of states in the transition system.
+	 * @param <Saut> Type of states in the automaton.
+	 * @param <A>    Type of actions in the transition system.
+	 * @param <P>    Type of atomic propositions in the transition system, which is
+	 *               also the type of the automaton alphabet.
+	 * @param ts     The transition system.
+	 * @param aut    A Büchi automaton for the words that do not satisfy the
+	 *               property.
 	 * @return A VerificationSucceeded object or a VerificationFailed object with a
 	 *         counterexample.
 	 */
@@ -770,7 +778,7 @@ public class FvmFacade {
 	 * Translation of Linear Temporal Logic (LTL) formula to a Nondeterministic
 	 * Büchi Automaton (NBA).
 	 *
-	 * @param     <L> Type of resultant automaton transition alphabet
+	 * @param <L> Type of resultant automaton transition alphabet
 	 * @param ltl The LTL formula represented as a parse-tree.
 	 * @return An automaton A such that L_\omega(A)=Words(ltl)
 	 */
@@ -782,7 +790,7 @@ public class FvmFacade {
 	 * A translation of a Generalized Büchi Automaton (GNBA) to a Nondeterministic
 	 * Büchi Automaton (NBA).
 	 *
-	 * @param        <L> Type of resultant automaton transition alphabet
+	 * @param <L>    Type of resultant automaton transition alphabet
 	 * @param mulAut An automaton with a set of accepting states (colors).
 	 * @return An equivalent automaton with a single set of accepting states.
 	 */
