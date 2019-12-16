@@ -7,8 +7,8 @@ import java.util.Set;
  * An interface for an abstract representation of logic circuits.
  */
 public interface Circuit {
-
     /**
+
      * Returns a list of names of the input ports.
      *
      * @return the names of the input ports.

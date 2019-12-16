@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.ArrayList;
 
 import il.ac.bgu.cs.formalmethodsintro.base.automata.Automaton;
 import il.ac.bgu.cs.formalmethodsintro.base.automata.MultiColorAutomaton;
@@ -22,7 +23,7 @@ import il.ac.bgu.cs.formalmethodsintro.base.transitionsystem.TSTransition;
 import il.ac.bgu.cs.formalmethodsintro.base.transitionsystem.TransitionSystem;
 import il.ac.bgu.cs.formalmethodsintro.base.util.Pair;
 import il.ac.bgu.cs.formalmethodsintro.base.verification.VerificationResult;
-import java.util.Collection;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -362,7 +363,19 @@ public class FvmFacade {
 	 * @return All states reachable in {@code ts}.
 	 */
 	public <S, A> Set<S> reach(TransitionSystem<S, A, ?> ts) {
-		throw new java.lang.UnsupportedOperationException();
+		Set<S> reach_states = ts.getInitialStates();
+		if (reach_states.isEmpty())
+			return new HashSet<>();
+		return reach(ts, new HashSet<>(reach_states), new HashSet<>(reach_states));
+	}
+
+	public <S, A> Set<S> reach(TransitionSystem<S, A, ?> ts, Set<S> reach_states, Set<S> states_to_explore) {
+		if (states_to_explore.isEmpty())
+			return reach_states;
+		Set<S> explored_states = this.post(ts, states_to_explore);
+		explored_states.removeAll(reach_states);
+		reach_states.addAll(explored_states);
+		return reach(ts, reach_states, explored_states);
 	}
 
 	/**
@@ -465,7 +478,44 @@ public class FvmFacade {
 	 * @return Interleaved program graph.
 	 */
 	public <L1, L2, A> ProgramGraph<Pair<L1, L2>, A> interleave(ProgramGraph<L1, A> pg1, ProgramGraph<L2, A> pg2) {
-		throw new java.lang.UnsupportedOperationException();
+		ProgramGraph<Pair<L1, L2>, A> interleavedPG = new ProgramGraph<>();
+		// Set the initialConditions
+		Set<List<String>> initialConditions = new HashSet<>(pg1.getInitalizations());
+		initialConditions.retainAll(pg2.getInitalizations());
+		interleavedPG.getInitalizations().addAll(initialConditions);
+
+		// Set all the interleaved locations
+		for (L1 loc1 : pg1.getLocations()) {
+			for (L2 loc2 : pg2.getLocations()) {
+				if (pg1.getInitialLocations().contains(loc1) && pg2.getInitialLocations().contains(loc2))
+					interleavedPG.setInitial(new Pair(loc1, loc2), true);
+				else
+					interleavedPG.addLocation(new Pair(loc1, loc2));
+			}
+		}
+
+		// Set all the transitions PGTransition
+		for (PGTransition<L1, A> transition1 : pg1.getTransitions()) {
+			for (Pair<L1, L2> state : interleavedPG.getLocations()) {
+				if (transition1.getFrom().equals(state.first)) {
+					interleavedPG.addTransition(new PGTransition<Pair<L1, L2>, A>(
+							new Pair(transition1.getFrom(), state.second), transition1.getCondition(),
+							transition1.getAction(), new Pair(transition1.getTo(), state.second)));
+				}
+			}
+		}
+
+		for (PGTransition<L2, A> transition2 : pg2.getTransitions()) {
+			for (Pair<L1, L2> state : interleavedPG.getLocations()) {
+				if (transition2.getFrom().equals(state.second)) {
+					interleavedPG.addTransition(new PGTransition<Pair<L1, L2>, A>(
+							new Pair(state.first, transition2.getFrom()), transition2.getCondition(),
+							transition2.getAction(), new Pair(state.first, transition2.getTo())));
+				}
+			}
+		}
+
+		return interleavedPG;
 	}
 
 	/**
@@ -476,7 +526,74 @@ public class FvmFacade {
 	 */
 	public TransitionSystem<Pair<Map<String, Boolean>, Map<String, Boolean>>, Map<String, Boolean>, Object> transitionSystemFromCircuit(
 			Circuit c) {
-		throw new java.lang.UnsupportedOperationException();
+		TransitionSystem<Pair<Map<String, Boolean>, Map<String, Boolean>>, Map<String, Boolean>, Object> tsFromCircuit = new TransitionSystem<>();
+		List<Map<String, Boolean>> inputsCombinations = getAllCombinations(c.getInputPortNames());
+		List<Map<String, Boolean>> registersCombinations = getAllCombinations(c.getRegisterNames());
+		for (Map<String, Boolean> inps_comb : inputsCombinations) {
+			for (Map<String, Boolean> regs_comb : registersCombinations) {
+				Pair<Map<String, Boolean>, Map<String, Boolean>> newState = new Pair(inps_comb, regs_comb);
+				tsFromCircuit.addState(newState);
+
+				// Set the AP - inputs
+				for (Map.Entry<String, Boolean> entry : inps_comb.entrySet()) {
+					if (entry.getValue())
+						tsFromCircuit.addToLabel(newState, entry.getKey());
+				}
+
+				// Set the AP - registers
+				for (Map.Entry<String, Boolean> entry : regs_comb.entrySet()) {
+					if (entry.getValue())
+						tsFromCircuit.addToLabel(newState, entry.getKey());
+				}
+
+				// Set the AP - outputs
+				Map<String, Boolean> outputs = c.computeOutputs(inps_comb, regs_comb);
+				for (Map.Entry<String, Boolean> entry : outputs.entrySet()) {
+					if (entry.getValue())
+						tsFromCircuit.addToLabel(newState, entry.getKey());
+				}
+
+				// Set initialized states
+				Boolean initialRegs = true;
+				for (Map.Entry<String, Boolean> entry : regs_comb.entrySet()) {
+					if (entry.getValue()) {
+						initialRegs = false;
+						break;
+					}
+				}
+
+				if (initialRegs)
+					tsFromCircuit.addInitialState(newState);
+
+				// Set the transitions and actions
+				Map<String, Boolean> newRegistersValues = c.updateRegisters(inps_comb, regs_comb);
+				for (Map<String, Boolean> comb : inputsCombinations) {
+					tsFromCircuit.addTransition(new TSTransition<>(newState, comb, new Pair(comb, newRegistersValues)));
+				}
+			}
+		}
+		return tsFromCircuit;
+	}
+
+	public List<Map<String, Boolean>> getAllCombinations(Set<String> setToIterate) {
+		List<Map<String, Boolean>> combinations = new ArrayList<>();
+		int numOfIterationsForInputs = (int) Math.pow(2, setToIterate.size());
+		for (int i = 0; i < numOfIterationsForInputs; i++) {
+			Map<String, Boolean> inputsMap = new HashMap<>();
+			String binaryNum = Integer.toString(i, 2);
+			List<String> inputs = new ArrayList<>();
+			for (String input : setToIterate) {
+				inputs.add(input);
+			}
+			for (int j = 0; j < binaryNum.length(); j++) {
+				inputsMap.put(inputs.get(j), (binaryNum.charAt(j) == '0') ? false : true);
+			}
+			for (int j = inputs.size() - binaryNum.length(); j > 0; j--) {
+				inputsMap.put(inputs.get(j), false);
+			}
+			combinations.add(inputsMap);
+		}
+		return combinations;
 	}
 
 	/**
