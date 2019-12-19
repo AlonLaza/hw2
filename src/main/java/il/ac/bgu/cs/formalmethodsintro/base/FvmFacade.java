@@ -4,10 +4,12 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 import il.ac.bgu.cs.formalmethodsintro.base.automata.Automaton;
 import il.ac.bgu.cs.formalmethodsintro.base.automata.MultiColorAutomaton;
 import il.ac.bgu.cs.formalmethodsintro.base.channelsystem.ChannelSystem;
+import il.ac.bgu.cs.formalmethodsintro.base.channelsystem.ParserBasedInterleavingActDef;
 import il.ac.bgu.cs.formalmethodsintro.base.circuits.Circuit;
 import il.ac.bgu.cs.formalmethodsintro.base.exceptions.StateNotFoundException;
 import il.ac.bgu.cs.formalmethodsintro.base.ltl.LTL;
@@ -495,27 +497,20 @@ public class FvmFacade {
 
 		TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts = new TransitionSystem();
 
-		// Create Eval
-		Set<Map<String, Object>> eval = new HashSet();
-		for (List<String> initializtion : pg.getInitalizations()) {
-			Map<String, Object> atomic_eval = new HashMap();
-			for (String atomic_init : initializtion) {
-				atomic_eval.putIfAbsent((atomic_init.substring(0, atomic_init.indexOf(':')).replaceAll("\\s+", "")),
-						Integer.parseInt((atomic_init.substring(atomic_init.indexOf('=') + 1)).replaceAll("\\s+", "")));
-			}
-			eval.add(atomic_eval);
-		}
+		// Create Eval and initial states
+		for (L loc : pg.getInitialLocations()) {
+			Map<String, Object> eval = new HashMap<String, Object>();
 
-		// Creating locations
-		for (L loc : pg.getLocations()) {
-			for (Map<String, Object> atomic_eval : eval) {
-				ts.addState(new Pair(loc, atomic_eval));
-			}
-		}
-		// Creating initial locations
-		for (Pair<L, Map<String, Object>> state : ts.getStates()) {
-			if (pg.getInitialLocations().contains(state.first)) {
-				ts.addInitialState(state);
+			if (pg.getInitalizations().size() == 0) {
+				ts.addInitialState(new Pair(loc, eval));
+
+			} else {
+				for (List<String> init : pg.getInitalizations()) {
+					for (String s : init) {
+						eval = ActionDef.effect(actionDefs, eval, s);
+					}
+					ts.addInitialState(new Pair(loc, eval));
+				}
 			}
 		}
 
@@ -535,26 +530,25 @@ public class FvmFacade {
 			labelNew_TS_stateFromGraph(ts, state, conditions, conditionDefs);
 		}
 
+		// Create the list state to explore
+		List<Pair<L, Map<String, Object>>> states_to_explore = new LinkedList<>(ts.getInitialStates());
 
-		//Create the list state to explore
-		List<Pair<L, Map<String, Object>>> states_to_explore = new LinkedList<>();
-		states_to_explore.addAll(ts.getInitialStates());
-		
 		// Create transitions
 		state_and_transition_exploration(states_to_explore, ts, pg, actionDefs, conditionDefs, conditions);
-		
+
 		return ts;
 	}
 
 	public <L, A> void state_and_transition_exploration(List<Pair<L, Map<String, Object>>> states_to_explore,
 			TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts, ProgramGraph<L, A> pg,
 			Set<ActionDef> actionDefs, Set<ConditionDef> conditionDefs, Set<String> conditions) {
-		
+
 		Pair<L, Map<String, Object>> state_to_explore = states_to_explore.remove(0);
 		for (PGTransition transition : pg.getTransitions()) {
 			if (transition.getFrom().equals(state_to_explore.first)
 					&& ConditionDef.evaluate(conditionDefs, state_to_explore.second, transition.getCondition())) {
-				Map<String, Object> newEval = ActionDef.effect(actionDefs, state_to_explore.second, transition.getAction());
+				Map<String, Object> newEval = ActionDef.effect(actionDefs, state_to_explore.second,
+						transition.getAction());
 				Pair<L, Map<String, Object>> newState = new Pair(transition.getTo(), newEval);
 				ts.addState(newState);
 				labelNew_TS_stateFromGraph(ts, newState, conditions, conditionDefs);
@@ -562,7 +556,7 @@ public class FvmFacade {
 				states_to_explore.add(newState);
 			}
 		}
-		if(states_to_explore.size()>0) {
+		if (states_to_explore.size() > 0) {
 			state_and_transition_exploration(states_to_explore, ts, pg, actionDefs, conditionDefs, conditions);
 		}
 	}
@@ -585,7 +579,145 @@ public class FvmFacade {
 
 	public <L, A> TransitionSystem<Pair<List<L>, Map<String, Object>>, A, String> transitionSystemFromChannelSystem(
 			ChannelSystem<L, A> cs, Set<ActionDef> actions, Set<ConditionDef> conditions) {
-		throw new java.lang.UnsupportedOperationException();
+
+		TransitionSystem<Pair<List<L>, Map<String, Object>>, A, String> ts = new TransitionSystem();
+
+		List<ProgramGraph<L, A>> pgs = cs.getProgramGraphs();
+		int number_of_pgs = cs.getProgramGraphs().size();
+		// just to sent to the cartesianProduct function to get all the possible initial
+		// states list
+		Set<L>[] array_of_sets = (Set<L>[]) new Object[number_of_pgs];
+
+		for (int i = 0; i < number_of_pgs; i++) {
+			array_of_sets[i] = pgs.get(i).getInitialLocations();
+		}
+
+		Set<List<L>> cartesian_initial_states = cartesianProduct(array_of_sets);
+
+		// doing the cut between all the initializations
+		Set<List<String>> initialConditions = new HashSet<>(pgs.get(0).getInitalizations());
+		for (int i = 1; i < number_of_pgs; i++) {
+			initialConditions.retainAll(pgs.get(i).getInitalizations());
+		}
+
+		// Create Eval
+		Map<String, Object> eval = new HashMap<String, Object>();
+
+		for (List<String> init : initialConditions) {
+			for (String s : init) {
+				eval = ActionDef.effect(actions, eval, s);
+			}
+		}
+		// creating the initial states
+		for (List<L> initial_state_list : cartesian_initial_states) {
+			ts.addInitialState(new Pair(initial_state_list, eval));
+		}
+
+		// Create string list of all conditions
+		Set<String> conditions_string = new HashSet<>();
+		for (ProgramGraph<L, A> pg : pgs) {
+			for (PGTransition trans : pg.getTransitions()) {
+				conditions_string.add(trans.getCondition());
+			}
+		}
+		// create labels of the initial states
+		for (Pair<List<L>, Map<String, Object>> initial_state : ts.getInitialStates()) {
+			labelNew_TS_stateFromChannel(ts, initial_state, conditions, conditions_string);
+		}
+		// Create the list state to explore
+		List<Pair<List<L>, Map<String, Object>>> states_to_explore = new LinkedList<>(ts.getInitialStates());
+
+		// Create transitions
+		channel_state_and_transition_exploration(states_to_explore, ts, pgs, actions, conditions, conditions_string);
+		return ts;
+
+	}
+
+	public <L, A> void channel_state_and_transition_exploration(
+			List<Pair<List<L>, Map<String, Object>>> states_to_explore,
+			TransitionSystem<Pair<List<L>, Map<String, Object>>, A, String> ts, List<ProgramGraph<L, A>> pgs,
+			Set<ActionDef> actions, Set<ConditionDef> conditionDefs, Set<String> conditions_string) {
+
+		Pair<List<L>, Map<String, Object>> state_to_explore = states_to_explore.remove(0);
+		ParserBasedInterleavingActDef parserBasedInterleavingActDef = new ParserBasedInterleavingActDef();
+		Set<PGTransition<L, A>> all_transitions_from_state = new HashSet<>();
+		for (ProgramGraph<L, A> pg : pgs) {
+			for (PGTransition<L, A> transition : pg.getTransitions()) {
+				if (state_to_explore.first.contains(transition.getFrom())
+						&& ConditionDef.evaluate(conditionDefs, state_to_explore.second, transition.getCondition())) {
+					all_transitions_from_state.add(transition);
+				}
+			}
+		}
+		for (PGTransition transition : all_transitions_from_state) {
+			if (!parserBasedInterleavingActDef.isOneSidedAction((String) transition.getAction())) {
+				if (try_to_read_from_empty_queue(state_to_explore, transition)) {
+					continue;
+				}
+				List<L> new_state_list = new LinkedList<>(state_to_explore.first);
+				int index_of_old = new_state_list.indexOf(transition.getFrom());
+
+				new_state_list.set(index_of_old, (L) transition.getTo());
+				Map<String, Object> new_eval = ActionDef.effect(actions, state_to_explore.second,
+						transition.getAction());
+
+				Pair<List<L>, Map<String, Object>> newState = new Pair(new_state_list, state_to_explore.second);
+				ts.addState(newState);
+				states_to_explore.add(newState);
+				// add label
+				labelNew_TS_stateFromChannel(ts, newState, conditionDefs, conditions_string);
+				// add transition
+				ts.addTransition(new TSTransition(state_to_explore, (A) transition.getAction(), newState));
+			}
+			// scanning just the _C! and not the _C? to avoid duplicates
+			else if (((String) transition.getAction()).contains("!")) {
+				for (PGTransition transition_interleavead : all_transitions_from_state) {
+					if (parserBasedInterleavingActDef.isOneSidedAction((String) transition_interleavead.getAction())
+							&& isOppositeActionInSameChannel((String) transition.getAction(),
+									(String) transition_interleavead.getAction())) {
+						List<L> new_state_name = channel_create_new_state_name(state_to_explore.first, transition,
+								transition_interleavead);
+						String interleaved_action = build_channel_interleave_action((String) transition.getAction(),
+								(String) transition_interleavead.getAction());
+						Map<String, Object> new_eval = parserBasedInterleavingActDef.effect(state_to_explore.second,
+								interleaved_action);
+						Pair<List<L>, Map<String, Object>> new_state = new Pair(new_state_name, new_eval);
+						ts.addState(new_state);
+						states_to_explore.add(new_state);
+						// add transition
+						ts.addTransition(new TSTransition(state_to_explore, interleaved_action, new_state));
+						// add label
+						labelNew_TS_stateFromChannel(ts, state_to_explore, conditionDefs, conditions_string);
+					}
+				}
+			}
+		}
+		if (states_to_explore.size() > 0) {
+			channel_state_and_transition_exploration(states_to_explore, ts, pgs, actions, conditionDefs,
+					conditions_string);
+		}
+	}
+
+	public <L> Set<List<L>> cartesianProduct(Set<L>... sets) {
+		if (sets.length < 2)
+			throw new IllegalArgumentException("Can't have a product of fewer than two sets (got " + sets.length + ")");
+
+		return _cartesianProduct(0, sets);
+	}
+
+	private <L> Set<List<L>> _cartesianProduct(int index, Set<L>... sets) {
+		Set<List<L>> ret = new HashSet<List<L>>();
+		if (index == sets.length) {
+			ret.add(new LinkedList<L>());
+		} else {
+			for (L obj : sets[index]) {
+				for (List<L> list : _cartesianProduct(index + 1, sets)) {
+					list.add(obj);
+					ret.add(list);
+				}
+			}
+		}
+		return ret;
 	}
 
 	/**
@@ -802,5 +934,69 @@ public class FvmFacade {
 			}
 		}
 	}
+
+	public <L, A> void labelNew_TS_stateFromChannel(TransitionSystem<Pair<List<L>, Map<String, Object>>, A, String> ts,
+			Pair<List<L>, Map<String, Object>> state, Set<ConditionDef> conditionDefs, Set<String> conditions) {
+		for (L state_name : state.first) {
+			ts.addToLabel(state, (String) state_name);
+
+		}
+		for (String condition : conditions) {
+			if (ConditionDef.evaluate(conditionDefs, state.second, condition)) {
+				ts.addToLabel(state, condition);
+			}
+		}
+	}
+
+	public boolean isOppositeActionInSameChannel(String first_action, String second_action) {
+		if (first_action.contains("?") && second_action.contains("!")) {
+			String chanName1 = first_action.split("\\?")[0];
+			String chanName2 = second_action.split("\\!")[0];
+			return chanName1.equals(chanName2);
+		}
+		if (first_action.contains("!") && second_action.contains("?")) {
+			String chanName1 = first_action.split("\\!")[0];
+			String chanName2 = second_action.split("\\?")[0];
+			return chanName1.equals(chanName2);
+		}
+		return false;
+	}
+
+	public <L> boolean try_to_read_from_empty_queue(Pair<List<L>, Map<String, Object>> state,
+			PGTransition transition) {
+    	String action = (String)transition.getAction();
+    	if(!action.contains("?")) {
+    		return false;
+    	}
+    	String channelName = action.split("\\?")[0];
+		return ((Vector)state.second.get(channelName)).size()<=0;
+	}
+
+	public <L> List<L> channel_create_new_state_name(List<L> old_name, PGTransition first_trans,
+			PGTransition second_trans) {
+		List<L> new_state_name = new LinkedList<>(old_name);
+
+		int index_of_old_1 = new_state_name.indexOf(first_trans.getFrom());
+		int index_of_old_2 = new_state_name.indexOf(second_trans.getFrom());
+
+		new_state_name.set(index_of_old_1, (L) first_trans.getTo());
+		new_state_name.set(index_of_old_2, (L) second_trans.getTo());
+		return new_state_name;
+	}
+
+	public String build_channel_interleave_action(String first_action, String second_action) {
+		if (first_action.contains("!")) {
+			return first_action + '|' + second_action;
+		} else {
+			return second_action + '|' + first_action;
+		}
+	}
+
+//	public String build_channel_interleave_condition(String first_cond, String second_cond) {
+//        String cond1 = first_cond.equals("") ? "true" : "(" + first_cond + ")";
+//        String cond2 = second_cond.equals("") ? "true" : "(" + second_cond + ")";
+//        String condition = cond1 + "&&" + cond2;
+//        return condition;
+//	}
 
 }
