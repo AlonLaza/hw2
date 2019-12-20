@@ -1,2 +1,2 @@
-/target
-.DS_Store
+*
+!src\main\java\il\ac\bgu\cs\formalmethodsintro\base\FvmFacade.java
