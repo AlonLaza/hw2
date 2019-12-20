@@ -66,7 +66,7 @@ public class FvmFacade {
 	 * @return {@code true} iff the action is deterministic.
 	 */
 	public <S, A, P> boolean isActionDeterministic(TransitionSystem<S, A, P> ts) {
-		if(ts.getInitialStates().size()>1) {
+		if (ts.getInitialStates().size() > 1) {
 			return false;
 		}
 		for (TSTransition transition : ts.getTransitions()) {
@@ -515,7 +515,7 @@ public class FvmFacade {
 				newInitialization.addAll(initialOfP2);
 				interleavedPG.addInitalization(newInitialization);
 			}
-		}	
+		}
 		// Set all the interleaved locations
 		for (L1 loc1 : pg1.getLocations()) {
 			for (L2 loc2 : pg2.getLocations()) {
@@ -686,8 +686,8 @@ public class FvmFacade {
 		return ts;
 	}
 
-	public <L, A> void state_and_transition_exploration(List<Pair<L, Map<String, Object>>> states_to_explore,
-			int index, TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts, ProgramGraph<L, A> pg,
+	public <L, A> void state_and_transition_exploration(List<Pair<L, Map<String, Object>>> states_to_explore, int index,
+			TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts, ProgramGraph<L, A> pg,
 			Set<ActionDef> actionDefs, Set<ConditionDef> conditionDefs, Set<String> conditions) {
 
 		Pair<L, Map<String, Object>> state_to_explore = states_to_explore.get(index);
@@ -700,31 +700,33 @@ public class FvmFacade {
 				ts.addTransition(new TSTransition(state_to_explore, (A) transition.getAction(), newState));
 				ts.addState(newState);
 				labelNew_TS_stateFromGraph(ts, newState, conditionDefs);
-				if(!states_to_explore.contains(newState)){
-				states_to_explore.add(newState);
+				if (!states_to_explore.contains(newState)) {
+					states_to_explore.add(newState);
 				}
 			}
 		}
 
-		if (index+1 < states_to_explore.size() ) {
-			state_and_transition_exploration(states_to_explore,index+1, ts, pg, actionDefs, conditionDefs, conditions);
+		if (index + 1 < states_to_explore.size()) {
+			state_and_transition_exploration(states_to_explore, index + 1, ts, pg, actionDefs, conditionDefs,
+					conditions);
 		}
 	}
 
-	public <L> Set<List<L>> cartesianProduct(Set<L>... sets) {
-		if (sets.length < 2)
-			throw new IllegalArgumentException("Can't have a product of fewer than two sets (got " + sets.length + ")");
+	public <L> Set<List<L>> cartesianProduct(List<Set<L>> array_of_sets) {
+		if (array_of_sets.size() < 2)
+			throw new IllegalArgumentException(
+					"Can't have a product of fewer than two sets (got " + array_of_sets.size() + ")");
 
-		return _cartesianProduct(0, sets);
+		return _cartesianProduct(0, array_of_sets);
 	}
 
-	private <L> Set<List<L>> _cartesianProduct(int index, Set<L>... sets) {
+	private <L> Set<List<L>> _cartesianProduct(int index, List<Set<L>> array_of_sets) {
 		Set<List<L>> ret = new HashSet<List<L>>();
-		if (index == sets.length) {
+		if (index == array_of_sets.size()) {
 			ret.add(new LinkedList<L>());
 		} else {
-			for (L obj : sets[index]) {
-				for (List<L> list : _cartesianProduct(index + 1, sets)) {
+			for (L obj : array_of_sets.get(index)) {
+				for (List<L> list : _cartesianProduct(index + 1, array_of_sets)) {
 					list.add(obj);
 					ret.add(list);
 				}
@@ -758,10 +760,12 @@ public class FvmFacade {
 		int number_of_pgs = cs.getProgramGraphs().size();
 		// just to sent to the cartesianProduct function to get all the possible initial
 		// states list
-		Set<L>[] array_of_sets = (Set<L>[]) new Object[number_of_pgs];
 
-		for (int i = 0; i < number_of_pgs; i++) {
-			array_of_sets[i] = pgs.get(i).getInitialLocations();
+		// Set<L>[] array_of_sets = (Set<L>[])new Object[number_of_pgs];
+		List<Set<L>> array_of_sets = new ArrayList<Set<L>>();
+
+		for (int i = number_of_pgs - 1; i > -1; i--) {
+			array_of_sets.add(pgs.get(i).getInitialLocations());
 		}
 
 		Set<List<L>> cartesian_initial_states = cartesianProduct(array_of_sets);
@@ -794,23 +798,23 @@ public class FvmFacade {
 		}
 		// create labels of the initial states
 		for (Pair<List<L>, Map<String, Object>> initial_state : ts.getInitialStates()) {
-			labelNew_TS_stateFromChannel(ts, initial_state, conditions, conditions_string);
+			labelNew_TS_stateFromChannel(ts, initial_state, conditions);
 		}
 		// Create the list state to explore
 		List<Pair<List<L>, Map<String, Object>>> states_to_explore = new LinkedList<>(ts.getInitialStates());
 
 		// Create transitions
-		channel_state_and_transition_exploration(states_to_explore, ts, pgs, actions, conditions, conditions_string);
+		channel_state_and_transition_exploration(states_to_explore, 0, ts, pgs, actions, conditions);
 		return ts;
 
 	}
 
 	public <L, A> void channel_state_and_transition_exploration(
-			List<Pair<List<L>, Map<String, Object>>> states_to_explore,
+			List<Pair<List<L>, Map<String, Object>>> states_to_explore, int index,
 			TransitionSystem<Pair<List<L>, Map<String, Object>>, A, String> ts, List<ProgramGraph<L, A>> pgs,
-			Set<ActionDef> actions, Set<ConditionDef> conditionDefs, Set<String> conditions_string) {
+			Set<ActionDef> actions, Set<ConditionDef> conditionDefs) {
 
-		Pair<List<L>, Map<String, Object>> state_to_explore = states_to_explore.remove(0);
+		Pair<List<L>, Map<String, Object>> state_to_explore = states_to_explore.get(index);
 		ParserBasedInterleavingActDef parserBasedInterleavingActDef = new ParserBasedInterleavingActDef();
 		Set<PGTransition<L, A>> all_transitions_from_state = new HashSet<>();
 		for (ProgramGraph<L, A> pg : pgs) {
@@ -835,11 +839,13 @@ public class FvmFacade {
 
 				Pair<List<L>, Map<String, Object>> newState = new Pair(new_state_list, state_to_explore.second);
 				ts.addState(newState);
-				states_to_explore.add(newState);
 				// add label
-				labelNew_TS_stateFromChannel(ts, newState, conditionDefs, conditions_string);
+				labelNew_TS_stateFromChannel(ts, newState, conditionDefs);
 				// add transition
 				ts.addTransition(new TSTransition(state_to_explore, (A) transition.getAction(), newState));
+				if (!states_to_explore.contains(newState)) {
+					states_to_explore.add(newState);
+				}
 			}
 			// scanning just the _C! and not the _C? to avoid duplicates
 			else if (((String) transition.getAction()).contains("!")) {
@@ -855,18 +861,19 @@ public class FvmFacade {
 								interleaved_action);
 						Pair<List<L>, Map<String, Object>> new_state = new Pair(new_state_name, new_eval);
 						ts.addState(new_state);
-						states_to_explore.add(new_state);
 						// add transition
 						ts.addTransition(new TSTransition(state_to_explore, interleaved_action, new_state));
 						// add label
-						labelNew_TS_stateFromChannel(ts, state_to_explore, conditionDefs, conditions_string);
+						labelNew_TS_stateFromChannel(ts, state_to_explore, conditionDefs);
+						if (!states_to_explore.contains(new_state)) {
+							states_to_explore.add(new_state);
+						}
 					}
 				}
 			}
 		}
-		if (states_to_explore.size() > 0) {
-			channel_state_and_transition_exploration(states_to_explore, ts, pgs, actions, conditionDefs,
-					conditions_string);
+		if (index + 1 < states_to_explore.size()) {
+			channel_state_and_transition_exploration(states_to_explore, index + 1, ts, pgs, actions, conditionDefs);
 		}
 	}
 
@@ -1120,10 +1127,10 @@ public class FvmFacade {
 	public <L, A> void labelNew_TS_stateFromGraph(TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts,
 			Pair<L, Map<String, Object>> state, Set<ConditionDef> conditionDefs) {
 		ts.addToLabel(state, state.first.toString());
-        Map<String, Object> eval = state.getSecond();
-        for(String var: eval.keySet()) {
-            ts.addToLabel(state, var + " = " + eval.get(var));
-        }
+		Map<String, Object> eval = state.getSecond();
+		for (String var : eval.keySet()) {
+			ts.addToLabel(state, var + " = " + eval.get(var));
+		}
 	}
 
 	private boolean isSimpleStatement(NanoPromelaParser.StmtContext sc) {
@@ -1222,12 +1229,12 @@ public class FvmFacade {
 				String cond = oc.boolexpr().getText().toString();
 				for (PGTransition<String, String> transition : nestedTransitions) {
 					String transFrom = transition.getFrom();
-					if (CameFromIf)
+					if (CameFromIf) {
 						if (!transition.getFrom().equals(TRUE_COND))
 							transition.setFrom(transFrom + ";" + loopTag);
-						else
-							execSingleIfElseCommand(transition.getFrom().equals(TRUE_COND), "from", loopTag,
-									transFrom + ";" + loopTag, transition);
+					} else
+						execSingleIfElseCommand(transition.getFrom().equals(TRUE_COND), "from", loopTag,
+								transFrom + ";" + loopTag, transition);
 
 					if (transition.getFrom().equals(loopTag) || transition.getFrom().equals(TRUE_COND)) {
 						String transCondition = transition.getCondition();
@@ -1290,11 +1297,11 @@ public class FvmFacade {
 			String nextStmt = stmts.get(1).getText().toString();
 			List<PGTransition<String, String>> nestedTransitions = generatePGTransitions(stmts.get(0), CameFromIf);
 			for (PGTransition<String, String> transition : nestedTransitions) {
-				if (CameFromIf)
+				if (CameFromIf) {
 					if (!transition.getFrom().equals(TRUE_COND))
 						transition.setFrom(transition.getFrom() + ";" + nextStmt);
-					else
-						transition.setFrom(transition.getFrom() + ";" + nextStmt);
+				} else
+					transition.setFrom(transition.getFrom() + ";" + nextStmt);
 				execSingleIfElseCommand(transition.getTo().equals(TRUE_COND), "to", nextStmt,
 						transition.getTo() + ";" + nextStmt, transition);
 			}
@@ -1319,15 +1326,15 @@ public class FvmFacade {
 	}
 
 	public <L, A> void labelNew_TS_stateFromChannel(TransitionSystem<Pair<List<L>, Map<String, Object>>, A, String> ts,
-			Pair<List<L>, Map<String, Object>> state, Set<ConditionDef> conditionDefs, Set<String> conditions) {
+			Pair<List<L>, Map<String, Object>> state, Set<ConditionDef> conditionDefs) {
 		for (L state_name : state.first) {
-			ts.addToLabel(state, (String) state_name);
+			ts.addToLabel(state, state_name.toString());
 
 		}
-        Map<String, Object> eval = state.getSecond();
-        for(String var: eval.keySet()) {
-            ts.addToLabel(state, var + " = " + eval.get(var));
-        }
+		Map<String, Object> eval = state.getSecond();
+		for (String var : eval.keySet()) {
+			ts.addToLabel(state, var + " = " + eval.get(var));
+		}
 	}
 
 	public boolean isOppositeActionInSameChannel(String first_action, String second_action) {
