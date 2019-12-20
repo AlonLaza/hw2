@@ -404,11 +404,23 @@ public class FvmFacade {
 		// Creating the action set
 		CreatingInterleaveActions(interleave_transition_system, ts1, ts2);
 
+		// Creating the initial states
+		CreatingInterleaveInitialStates(interleave_transition_system, ts1, ts2);
+
 		// Creating transitions
 		CreatingInterleaveTransitions(interleave_transition_system, ts1, ts2);
 
-		// Creating the initial states
-		CreatingInterleaveInitialStates(interleave_transition_system, ts1, ts2);
+		Set<Pair<S1, S2>> reaches = reach(interleave_transition_system);
+		Set<Pair<S1, S2>> unreachable = new HashSet<>();
+
+		for (Pair<S1, S2> state : interleave_transition_system.getStates()) {
+			if (!reaches.contains(state)) {
+				unreachable.add(state);
+			}
+		}
+		for (Pair<S1, S2> state : unreachable) {
+			interleave_transition_system.removeState(state);
+		}
 
 		// Creating the atomic Propositions
 		CreatingInterleavePropositions(interleave_transition_system, ts1, ts2);
@@ -442,12 +454,24 @@ public class FvmFacade {
 		// Creating the action set
 		CreatingInterleaveActions(interleave_transition_system, ts1, ts2);
 
+		// Creating the initial states
+		CreatingInterleaveInitialStates(interleave_transition_system, ts1, ts2);
+		
 		// Creating transitions
 		CreatingInterleaveSynchronizeTransitions(interleave_transition_system, ts1, ts2, handShakingActions);
 
-		// Creating the initial states
-		CreatingInterleaveInitialStates(interleave_transition_system, ts1, ts2);
+		Set<Pair<S1, S2>> reaches = reach(interleave_transition_system);
+		Set<Pair<S1, S2>> unreachable = new HashSet<>();
 
+		for (Pair<S1, S2> state : interleave_transition_system.getStates()) {
+			if (!reaches.contains(state)) {
+				unreachable.add(state);
+			}
+		}
+		for (Pair<S1, S2> state : unreachable) {
+			interleave_transition_system.removeState(state);
+		}
+		
 		// Creating the atomic Propositions
 		CreatingInterleavePropositions(interleave_transition_system, ts1, ts2);
 
@@ -599,18 +623,18 @@ public class FvmFacade {
 	}
 
 	/**
-     * Creates a {@link TransitionSystem} from a program graph.
-     *
-     * @param <L>           Type of program graph locations.
-     * @param <A>           Type of program graph actions.
-     * @param pg            The program graph to be translated into a transition
-     *                      system.
-     * @param actionDefs    Defines the effect of each action.
-     * @param conditionDefs Defines the conditions (guards) of the program graph.
-     * @return A transition system representing {@code pg}.
-     */
-    public <L, A> TransitionSystem<Pair<L, Map<String, Object>>, A, String> transitionSystemFromProgramGraph(
-            ProgramGraph<L, A> pg, Set<ActionDef> actionDefs, Set<ConditionDef> conditionDefs) {
+	 * Creates a {@link TransitionSystem} from a program graph.
+	 *
+	 * @param <L>           Type of program graph locations.
+	 * @param <A>           Type of program graph actions.
+	 * @param pg            The program graph to be translated into a transition
+	 *                      system.
+	 * @param actionDefs    Defines the effect of each action.
+	 * @param conditionDefs Defines the conditions (guards) of the program graph.
+	 * @return A transition system representing {@code pg}.
+	 */
+	public <L, A> TransitionSystem<Pair<L, Map<String, Object>>, A, String> transitionSystemFromProgramGraph(
+			ProgramGraph<L, A> pg, Set<ActionDef> actionDefs, Set<ConditionDef> conditionDefs) {
 
 		TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts = new TransitionSystem();
 
@@ -654,8 +678,8 @@ public class FvmFacade {
 		state_and_transition_exploration(states_to_explore, ts, pg, actionDefs, conditionDefs, conditions);
 
 		return ts;
-    }
-    	
+	}
+
 	public <L, A> void state_and_transition_exploration(List<Pair<L, Map<String, Object>>> states_to_explore,
 			TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts, ProgramGraph<L, A> pg,
 			Set<ActionDef> actionDefs, Set<ConditionDef> conditionDefs, Set<String> conditions) {
@@ -677,8 +701,6 @@ public class FvmFacade {
 			state_and_transition_exploration(states_to_explore, ts, pg, actionDefs, conditionDefs, conditions);
 		}
 	}
-    	
-	
 
 	public <L> Set<List<L>> cartesianProduct(Set<L>... sets) {
 		if (sets.length < 2)
@@ -701,7 +723,6 @@ public class FvmFacade {
 		}
 		return ret;
 	}
-
 
 	/**
 	 * Creates a transition system representing channel system {@code cs}.
@@ -1038,6 +1059,7 @@ public class FvmFacade {
 			TransitionSystem<Pair<S1, S2>, A, P> interleave_transition_system, TransitionSystem<S1, A, P> ts1,
 			TransitionSystem<S2, A, P> ts2, Set<A> handShakingActions) {
 
+		Set<TSTransition> unreachable_transitions = new HashSet<>();
 		// Adding the transitions from ts1
 		for (TSTransition transition_ts1 : ts1.getTransitions()) {
 			if (!(handShakingActions.contains(transition_ts1.getAction()))) {
@@ -1073,6 +1095,17 @@ public class FvmFacade {
 			}
 
 		}
+		Set<Pair<S1, S2>> reaches = reach(interleave_transition_system);
+
+		for (TSTransition trans : interleave_transition_system.getTransitions()) {
+			if (!reaches.contains(trans.getFrom())) {
+				unreachable_transitions.add(trans);
+			}
+		}
+		for (TSTransition trans : unreachable_transitions) {
+			interleave_transition_system.removeTransition(trans);
+		}
+
 	}
 
 	public <L, A> void labelNew_TS_stateFromGraph(TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts,
