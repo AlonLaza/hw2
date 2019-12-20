@@ -66,6 +66,9 @@ public class FvmFacade {
 	 * @return {@code true} iff the action is deterministic.
 	 */
 	public <S, A, P> boolean isActionDeterministic(TransitionSystem<S, A, P> ts) {
+		if(ts.getInitialStates().size()>1) {
+			return false;
+		}
 		for (TSTransition transition : ts.getTransitions()) {
 			for (TSTransition transition_compared : ts.getTransitions()) {
 				if ((!transition.equals(transition_compared))
@@ -668,7 +671,7 @@ public class FvmFacade {
 
 		// Add propositions and Labeling
 		for (Pair<L, Map<String, Object>> state : ts.getStates()) {
-			labelNew_TS_stateFromGraph(ts, state, conditions, conditionDefs);
+			labelNew_TS_stateFromGraph(ts, state, conditionDefs);
 		}
 
 		// Create the list state to explore
@@ -693,7 +696,7 @@ public class FvmFacade {
 				Pair<L, Map<String, Object>> newState = new Pair(transition.getTo(), newEval);
 				ts.addTransition(new TSTransition(state_to_explore, (A) transition.getAction(), newState));
 				ts.addState(newState);
-				labelNew_TS_stateFromGraph(ts, newState, conditions, conditionDefs);
+				labelNew_TS_stateFromGraph(ts, newState, conditionDefs);
 				if(!states_to_explore.contains(newState)){
 				states_to_explore.add(newState);
 				}
@@ -1112,17 +1115,12 @@ public class FvmFacade {
 	}
 
 	public <L, A> void labelNew_TS_stateFromGraph(TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts,
-			Pair<L, Map<String, Object>> state, Set<String> conditions, Set<ConditionDef> conditionDefs) {
+			Pair<L, Map<String, Object>> state, Set<ConditionDef> conditionDefs) {
 		ts.addToLabel(state, (String) state.first);
         Map<String, Object> eval = state.getSecond();
         for(String var: eval.keySet()) {
             ts.addToLabel(state, var + " = " + eval.get(var));
         }
-//		for (String condition : conditions) {
-//			if (ConditionDef.evaluate(conditionDefs, state.second, condition)) {
-//				ts.addToLabel(state, condition);
-//			}
-//		}
 	}
 
 	private boolean isSimpleStatement(NanoPromelaParser.StmtContext sc) {
