@@ -413,17 +413,17 @@ public class FvmFacade {
 		// Creating transitions
 		CreatingInterleaveTransitions(interleave_transition_system, ts1, ts2);
 
-		Set<Pair<S1, S2>> reaches = reach(interleave_transition_system);
-		Set<Pair<S1, S2>> unreachable = new HashSet<>();
-
-		for (Pair<S1, S2> state : interleave_transition_system.getStates()) {
-			if (!reaches.contains(state)) {
-				unreachable.add(state);
-			}
-		}
-		for (Pair<S1, S2> state : unreachable) {
-			interleave_transition_system.removeState(state);
-		}
+//		Set<Pair<S1, S2>> reaches = reach(interleave_transition_system);
+//		Set<Pair<S1, S2>> unreachable = new HashSet<>();
+//
+//		for (Pair<S1, S2> state : interleave_transition_system.getStates()) {
+//			if (!reaches.contains(state)) {
+//				unreachable.add(state);
+//			}
+//		}
+//		for (Pair<S1, S2> state : unreachable) {
+//			interleave_transition_system.removeState(state);
+//		}
 
 		// Creating the atomic Propositions
 		CreatingInterleavePropositions(interleave_transition_system, ts1, ts2);
@@ -509,10 +509,13 @@ public class FvmFacade {
 	public <L1, L2, A> ProgramGraph<Pair<L1, L2>, A> interleave(ProgramGraph<L1, A> pg1, ProgramGraph<L2, A> pg2) {
 		ProgramGraph<Pair<L1, L2>, A> interleavedPG = new ProgramGraph<>();
 		// Set the initialConditions
-		Set<List<String>> initialConditions = new HashSet<>(pg1.getInitalizations());
-		initialConditions.retainAll(pg2.getInitalizations());
-		interleavedPG.getInitalizations().addAll(initialConditions);
-
+		for (List<String> initialOfP1 : pg1.getInitalizations()) {
+			for (List<String> initialOfP2 : pg2.getInitalizations()) {
+				List<String> newInitialization = new ArrayList<>(initialOfP1);
+				newInitialization.addAll(initialOfP2);
+				interleavedPG.addInitalization(newInitialization);
+			}
+		}	
 		// Set all the interleaved locations
 		for (L1 loc1 : pg1.getLocations()) {
 			for (L2 loc2 : pg2.getLocations()) {
@@ -1116,7 +1119,7 @@ public class FvmFacade {
 
 	public <L, A> void labelNew_TS_stateFromGraph(TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts,
 			Pair<L, Map<String, Object>> state, Set<ConditionDef> conditionDefs) {
-		ts.addToLabel(state, (String) state.first);
+		ts.addToLabel(state, state.first.toString());
         Map<String, Object> eval = state.getSecond();
         for(String var: eval.keySet()) {
             ts.addToLabel(state, var + " = " + eval.get(var));
@@ -1321,11 +1324,10 @@ public class FvmFacade {
 			ts.addToLabel(state, (String) state_name);
 
 		}
-		for (String condition : conditions) {
-			if (ConditionDef.evaluate(conditionDefs, state.second, condition)) {
-				ts.addToLabel(state, condition);
-			}
-		}
+        Map<String, Object> eval = state.getSecond();
+        for(String var: eval.keySet()) {
+            ts.addToLabel(state, var + " = " + eval.get(var));
+        }
 	}
 
 	public boolean isOppositeActionInSameChannel(String first_action, String second_action) {
