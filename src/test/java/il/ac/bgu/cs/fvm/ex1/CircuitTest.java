@@ -119,8 +119,8 @@ public class CircuitTest {
         TransitionSystem<Pair<Map<String, Boolean>, Map<String, Boolean>>, Map<String, Boolean>, Object> ts;
         ts = fvmFacadeImpl.transitionSystemFromCircuit(c);
 
-        assertEquals(set("r2", "y1", "x1", "y2", "x2", "r1"), ts.getAtomicPropositions());
 
+        
         assertEquals(
                 set(p(map(p("x1", true), p("x2", false)), map(p("r2", false), p("r1", true))), p(map(p("x1", false), p("x2", false)), map(p("r2", false), p("r1", false))),
                         p(map(p("x1", true), p("x2", true)), map(p("r2", false), p("r1", false))), p(map(p("x1", false), p("x2", false)), map(p("r2", true), p("r1", true))),
@@ -128,7 +128,7 @@ public class CircuitTest {
                         p(map(p("x1", true), p("x2", false)), map(p("r2", false), p("r1", false))), p(map(p("x1", true), p("x2", false)), map(p("r2", true), p("r1", true))),
                         p(map(p("x1", false), p("x2", false)), map(p("r2", false), p("r1", true))), p(map(p("x1", true), p("x2", true)), map(p("r2", false), p("r1", true))),
                         p(map(p("x1", false), p("x2", true)), map(p("r2", false), p("r1", false))), p(map(p("x1", false), p("x2", true)), map(p("r2", true), p("r1", true)))),
-                ts.getStates());
+                fvmFacadeImpl.reach(ts));
 
 //        assertEquals(
 //                set(p(map(p("x1", false), p("x2", false)), map(p("r2", false), p("r1", false))),

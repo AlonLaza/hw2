@@ -28,7 +28,8 @@ public class ChannelSystemTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void alternatingBitProtocol() throws Exception {
-		TransitionSystem<Pair<List<String>, Map<String, Object>>, String, String> ts = fvmFacadeImpl.transitionSystemFromChannelSystem(AlternatingBitProtocolBuilder.build());
+		ChannelSystem<String,String> cs =AlternatingBitProtocolBuilder.build(); 
+		TransitionSystem<Pair<List<String>, Map<String, Object>>, String, String> ts = fvmFacadeImpl.transitionSystemFromChannelSystem(cs);
 
 		assertTrue(fvmFacadeImpl.isInitialExecutionFragment(ts, AlternatingSequence.of(p(seq("snd_msg(0)", "off", "wait(0)"), map()), //
 				"C!0", //

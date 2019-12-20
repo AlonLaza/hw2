@@ -135,7 +135,7 @@ public class AlternatingSequence<S, A> {
 			return true;
 		}
 		boolean found = false;
-		for(int i=0;i<this.items.size();i=i+2){
+		for(int i=0;i+1<this.items.size();i=i+2){
 			for(TSTransition transition : ts.getTransitions()) {
 				if(transition.getFrom().equals(items.get(i)) && transition.getAction().equals(items.get(i+1)) 
 						&& transition.getTo().equals(items.get(i+2))) {
