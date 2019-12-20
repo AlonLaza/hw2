@@ -456,7 +456,7 @@ public class FvmFacade {
 
 		// Creating the initial states
 		CreatingInterleaveInitialStates(interleave_transition_system, ts1, ts2);
-		
+
 		// Creating transitions
 		CreatingInterleaveSynchronizeTransitions(interleave_transition_system, ts1, ts2, handShakingActions);
 
@@ -471,7 +471,7 @@ public class FvmFacade {
 		for (Pair<S1, S2> state : unreachable) {
 			interleave_transition_system.removeState(state);
 		}
-		
+
 		// Creating the atomic Propositions
 		CreatingInterleavePropositions(interleave_transition_system, ts1, ts2);
 
@@ -675,30 +675,33 @@ public class FvmFacade {
 		List<Pair<L, Map<String, Object>>> states_to_explore = new LinkedList<>(ts.getInitialStates());
 
 		// Create transitions
-		state_and_transition_exploration(states_to_explore, ts, pg, actionDefs, conditionDefs, conditions);
+		state_and_transition_exploration(states_to_explore, 0, ts, pg, actionDefs, conditionDefs, conditions);
 
 		return ts;
 	}
 
 	public <L, A> void state_and_transition_exploration(List<Pair<L, Map<String, Object>>> states_to_explore,
-			TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts, ProgramGraph<L, A> pg,
+			int index, TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts, ProgramGraph<L, A> pg,
 			Set<ActionDef> actionDefs, Set<ConditionDef> conditionDefs, Set<String> conditions) {
 
-		Pair<L, Map<String, Object>> state_to_explore = states_to_explore.remove(0);
+		Pair<L, Map<String, Object>> state_to_explore = states_to_explore.get(index);
 		for (PGTransition transition : pg.getTransitions()) {
 			if (transition.getFrom().equals(state_to_explore.first)
 					&& ConditionDef.evaluate(conditionDefs, state_to_explore.second, transition.getCondition())) {
 				Map<String, Object> newEval = ActionDef.effect(actionDefs, state_to_explore.second,
 						transition.getAction());
 				Pair<L, Map<String, Object>> newState = new Pair(transition.getTo(), newEval);
+				ts.addTransition(new TSTransition(state_to_explore, (A) transition.getAction(), newState));
 				ts.addState(newState);
 				labelNew_TS_stateFromGraph(ts, newState, conditions, conditionDefs);
-				ts.addTransition(new TSTransition(state_to_explore, (A) transition.getAction(), newState));
+				if(!states_to_explore.contains(newState)){
 				states_to_explore.add(newState);
+				}
 			}
 		}
-		if (states_to_explore.size() > 0) {
-			state_and_transition_exploration(states_to_explore, ts, pg, actionDefs, conditionDefs, conditions);
+
+		if (index+1 < states_to_explore.size() ) {
+			state_and_transition_exploration(states_to_explore,index+1, ts, pg, actionDefs, conditionDefs, conditions);
 		}
 	}
 
@@ -1111,11 +1114,15 @@ public class FvmFacade {
 	public <L, A> void labelNew_TS_stateFromGraph(TransitionSystem<Pair<L, Map<String, Object>>, A, String> ts,
 			Pair<L, Map<String, Object>> state, Set<String> conditions, Set<ConditionDef> conditionDefs) {
 		ts.addToLabel(state, (String) state.first);
-		for (String condition : conditions) {
-			if (ConditionDef.evaluate(conditionDefs, state.second, condition)) {
-				ts.addToLabel(state, condition);
-			}
-		}
+        Map<String, Object> eval = state.getSecond();
+        for(String var: eval.keySet()) {
+            ts.addToLabel(state, var + " = " + eval.get(var));
+        }
+//		for (String condition : conditions) {
+//			if (ConditionDef.evaluate(conditionDefs, state.second, condition)) {
+//				ts.addToLabel(state, condition);
+//			}
+//		}
 	}
 
 	private boolean isSimpleStatement(NanoPromelaParser.StmtContext sc) {
