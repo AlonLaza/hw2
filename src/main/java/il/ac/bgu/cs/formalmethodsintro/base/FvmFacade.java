@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Vector;
 
 import il.ac.bgu.cs.formalmethodsintro.base.automata.Automaton;
@@ -613,15 +614,17 @@ public class FvmFacade {
 		for (int i = 0; i < numOfIterationsForInputs; i++) {
 			Map<String, Boolean> inputsMap = new HashMap<>();
 			String binaryNum = Integer.toString(i, 2);
+			if ((setToIterate.size() - binaryNum.length()) > 0) {
+				char[] charArray = new char[setToIterate.size() - binaryNum.length()];
+				Arrays.fill(charArray, '0');
+				binaryNum = new String(charArray) + binaryNum;
+			}
 			List<String> inputs = new ArrayList<>();
 			for (String input : setToIterate) {
 				inputs.add(input);
 			}
 			for (int j = 0; j < binaryNum.length(); j++) {
-				inputsMap.put(inputs.get(j), (binaryNum.charAt(j) == '0') ? false : true);
-			}
-			for (int j = inputs.size() - binaryNum.length(); j > 0; j--) {
-				inputsMap.put(inputs.get(j), false);
+				inputsMap.put(inputs.get(j), !(binaryNum.charAt(j) == '0'));
 			}
 			combinations.add(inputsMap);
 		}
@@ -663,6 +666,9 @@ public class FvmFacade {
 
 		// Creating actions
 		for (PGTransition pg_transition : pg.getTransitions()) {
+			if(pg_transition.getAction().equals("")) {
+				continue;
+			}
 			ts.addAction((A) pg_transition.getAction());
 		}
 
@@ -760,8 +766,6 @@ public class FvmFacade {
 		int number_of_pgs = cs.getProgramGraphs().size();
 		// just to sent to the cartesianProduct function to get all the possible initial
 		// states list
-
-		// Set<L>[] array_of_sets = (Set<L>[])new Object[number_of_pgs];
 		List<Set<L>> array_of_sets = new ArrayList<Set<L>>();
 
 		for (int i = number_of_pgs - 1; i > -1; i--) {
@@ -770,32 +774,27 @@ public class FvmFacade {
 
 		Set<List<L>> cartesian_initial_states = cartesianProduct(array_of_sets);
 
-		// doing the cut between all the initializations
-		Set<List<String>> initialConditions = new HashSet<>(pgs.get(0).getInitalizations());
-		for (int i = 1; i < number_of_pgs; i++) {
-			initialConditions.retainAll(pgs.get(i).getInitalizations());
-		}
+		// The initializetions
+		Set<List<String>> initials = generateListOfInitialsForStates(cs.getProgramGraphs());
 
-		// Create Eval
-		Map<String, Object> eval = new HashMap<String, Object>();
-
-		for (List<String> init : initialConditions) {
-			for (String s : init) {
-				eval = ActionDef.effect(actions, eval, s);
+		// initial states
+		for (List<L> loc : cartesian_initial_states) {
+			if (initials.size() > 0) {
+				for (List<String> init : initials) {
+					Map<String, Object> varMaps = new HashMap<>();
+					for (String s : init) {
+						varMaps = ActionDef.effect(actions, varMaps, s);
+					}
+					Pair<List<L>, Map<String, Object>> state = new Pair<>(loc, varMaps);
+					ts.addInitialState(state);
+				}
+			} else {
+				Map<String, Object> varMaps = new HashMap<>();
+				Pair<List<L>, Map<String, Object>> state = new Pair<>(loc, varMaps);
+				ts.addInitialState(state);
 			}
 		}
-		// creating the initial states
-		for (List<L> initial_state_list : cartesian_initial_states) {
-			ts.addInitialState(new Pair(initial_state_list, eval));
-		}
 
-		// Create string list of all conditions
-		Set<String> conditions_string = new HashSet<>();
-		for (ProgramGraph<L, A> pg : pgs) {
-			for (PGTransition trans : pg.getTransitions()) {
-				conditions_string.add(trans.getCondition());
-			}
-		}
 		// create labels of the initial states
 		for (Pair<List<L>, Map<String, Object>> initial_state : ts.getInitialStates()) {
 			labelNew_TS_stateFromChannel(ts, initial_state, conditions);
@@ -825,48 +824,54 @@ public class FvmFacade {
 				}
 			}
 		}
-		for (PGTransition transition : all_transitions_from_state) {
-			if (!parserBasedInterleavingActDef.isOneSidedAction((String) transition.getAction())) {
-				if (try_to_read_from_empty_queue(state_to_explore, transition)) {
-					continue;
-				}
-				List<L> new_state_list = new LinkedList<>(state_to_explore.first);
-				int index_of_old = new_state_list.indexOf(transition.getFrom());
+		// for (PGTransition transition : all_transitions_from_state) {
+		for (int i = 0; i < pgs.size(); i++) {
+			for (PGTransition<L, A> transition : pgs.get(i).getTransitions()) {
+				if (state_to_explore.first.get(i).equals(transition.getFrom())
+						&& ConditionDef.evaluate(conditionDefs, state_to_explore.second, transition.getCondition())) {
+					if (!parserBasedInterleavingActDef.isOneSidedAction((String) transition.getAction())) {
+						if (try_to_read_from_empty_queue(state_to_explore, transition)) {
+							continue;
+						}
+						List<L> new_state_list = new LinkedList<>(state_to_explore.first);
 
-				new_state_list.set(index_of_old, (L) transition.getTo());
-				Map<String, Object> new_eval = ActionDef.effect(actions, state_to_explore.second,
-						transition.getAction());
+						new_state_list.set(i, (L) transition.getTo());
+						Map<String, Object> new_eval = ActionDef.effect(actions, state_to_explore.second,
+								transition.getAction());
 
-				Pair<List<L>, Map<String, Object>> newState = new Pair(new_state_list, state_to_explore.second);
-				ts.addState(newState);
-				// add label
-				labelNew_TS_stateFromChannel(ts, newState, conditionDefs);
-				// add transition
-				ts.addTransition(new TSTransition(state_to_explore, (A) transition.getAction(), newState));
-				if (!states_to_explore.contains(newState)) {
-					states_to_explore.add(newState);
-				}
-			}
-			// scanning just the _C! and not the _C? to avoid duplicates
-			else if (((String) transition.getAction()).contains("!")) {
-				for (PGTransition transition_interleavead : all_transitions_from_state) {
-					if (parserBasedInterleavingActDef.isOneSidedAction((String) transition_interleavead.getAction())
-							&& isOppositeActionInSameChannel((String) transition.getAction(),
-									(String) transition_interleavead.getAction())) {
-						List<L> new_state_name = channel_create_new_state_name(state_to_explore.first, transition,
-								transition_interleavead);
-						String interleaved_action = build_channel_interleave_action((String) transition.getAction(),
-								(String) transition_interleavead.getAction());
-						Map<String, Object> new_eval = parserBasedInterleavingActDef.effect(state_to_explore.second,
-								interleaved_action);
-						Pair<List<L>, Map<String, Object>> new_state = new Pair(new_state_name, new_eval);
-						ts.addState(new_state);
-						// add transition
-						ts.addTransition(new TSTransition(state_to_explore, interleaved_action, new_state));
+						Pair<List<L>, Map<String, Object>> newState = new Pair(new_state_list, new_eval);
+						ts.addState(newState);
 						// add label
-						labelNew_TS_stateFromChannel(ts, state_to_explore, conditionDefs);
-						if (!states_to_explore.contains(new_state)) {
-							states_to_explore.add(new_state);
+						labelNew_TS_stateFromChannel(ts, newState, conditionDefs);
+						// add transition
+						ts.addTransition(new TSTransition(state_to_explore, (A) transition.getAction(), newState));
+						if (!states_to_explore.contains(newState)) {
+							states_to_explore.add(newState);
+						}
+					}
+					// scanning just the _C! and not the _C? to avoid duplicates
+					else /*if (((String) transition.getAction()).contains("!")) */{
+						for (PGTransition transition_interleavead : all_transitions_from_state) {
+							if (parserBasedInterleavingActDef
+									.isOneSidedAction((String) transition_interleavead.getAction())
+									&& isOppositeActionInSameChannel((String) transition.getAction(),
+											(String) transition_interleavead.getAction())) {
+								List<L> new_state_name = channel_create_new_state_name(state_to_explore.first,
+										transition, transition_interleavead);
+								String interleaved_action = build_channel_interleave_action(
+										(String) transition.getAction(), (String) transition_interleavead.getAction());
+								Map<String, Object> new_eval = parserBasedInterleavingActDef
+										.effect(state_to_explore.second, interleaved_action);
+								Pair<List<L>, Map<String, Object>> new_state = new Pair(new_state_name, new_eval);
+								ts.addState(new_state);
+								// add transition
+								ts.addTransition(new TSTransition(state_to_explore, interleaved_action, new_state));
+								// add label
+								labelNew_TS_stateFromChannel(ts, state_to_explore, conditionDefs);
+								if (!states_to_explore.contains(new_state)) {
+									states_to_explore.add(new_state);
+								}
+							}
 						}
 					}
 				}
@@ -1138,7 +1143,7 @@ public class FvmFacade {
 				|| (sc.chanreadstmt() != null) || (sc.chanwritestmt() != null));
 	}
 
-	private final String TRUE_COND = "true";
+	private final String TRUE_COND = "";
 
 	public List<PGTransition<String, String>> generatePGTransitionsFromSimpleStmnt(NanoPromelaParser.StmtContext sc,
 			boolean cameFromIf, List<PGTransition<String, String>> allTransitions) {
@@ -1285,7 +1290,7 @@ public class FvmFacade {
 		NanoPromelaParser.DostmtContext doStatement;
 		doStatement = sc.dostmt();
 		if (doStatement != null)
-			addingTransitionsByTypeOfStmt(allTransitions, doStatement, "if", CameFromIf);
+			addingTransitionsByTypeOfStmt(allTransitions, doStatement, "do", CameFromIf);
 		return allTransitions;
 	}
 
@@ -1357,6 +1362,9 @@ public class FvmFacade {
 			return false;
 		}
 		String channelName = action.split("\\?")[0];
+		if (state.second.get(channelName) == null) {
+			return true;
+		}
 		return ((Vector) state.second.get(channelName)).size() <= 0;
 	}
 
@@ -1373,18 +1381,36 @@ public class FvmFacade {
 	}
 
 	public String build_channel_interleave_action(String first_action, String second_action) {
-		if (first_action.contains("!")) {
-			return first_action + '|' + second_action;
-		} else {
-			return second_action + '|' + first_action;
-		}
+		
+		return first_action + '|' + second_action;
 	}
 
-//	public String build_channel_interleave_condition(String first_cond, String second_cond) {
-//        String cond1 = first_cond.equals("") ? "true" : "(" + first_cond + ")";
-//        String cond2 = second_cond.equals("") ? "true" : "(" + second_cond + ")";
-//        String condition = cond1 + "&&" + cond2;
-//        return condition;
-//	}
 
+	private <L, A> Set<List<String>> generateListOfInitialsForStates(List<ProgramGraph<L, A>> pgs) {
+		return generateListOfInitialsForStates(pgs, 0, new HashSet<>());
+	}
+
+	private <L, A> Set<List<String>> generateListOfInitialsForStates(List<ProgramGraph<L, A>> pgs, int pgsIndex,
+			Set<List<String>> result) {
+		if (pgs.size() <= pgsIndex)
+			return result;
+		if (result.isEmpty()) {
+			for (List<String> init : pgs.get(pgsIndex).getInitalizations()) {
+				List<String> lst = new LinkedList<>();
+				lst.addAll(init);
+				result.add(lst);
+			}
+			return generateListOfInitialsForStates(pgs, pgsIndex + 1, result);
+		} else {
+			Set<List<String>> newResult = new HashSet<>();
+			for (List<String> state : result) {
+				for (List<String> init : pgs.get(pgsIndex).getInitalizations()) {
+					List<String> newState = new LinkedList<>(state);
+					newState.addAll(init);
+					newResult.add(newState);
+				}
+			}
+			return generateListOfInitialsForStates(pgs, pgsIndex + 1, newResult);
+		}
+	}
 }

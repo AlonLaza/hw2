@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import il.ac.bgu.cs.formalmethodsintro.base.channelsystem.ChannelSystem;
 import il.ac.bgu.cs.formalmethodsintro.base.transitionsystem.AlternatingSequence;
-
+import il.ac.bgu.cs.formalmethodsintro.base.transitionsystem.TSTransition;
 import il.ac.bgu.cs.fvm.examples.AlternatingBitProtocolBuilder;
 
 
@@ -30,6 +30,8 @@ public class ChannelSystemTest {
 	public void alternatingBitProtocol() throws Exception {
 		ChannelSystem<String,String> cs =AlternatingBitProtocolBuilder.build(); 
 		TransitionSystem<Pair<List<String>, Map<String, Object>>, String, String> ts = fvmFacadeImpl.transitionSystemFromChannelSystem(cs);
+		assertTrue(ts.getTransitions().contains(new TSTransition(p(seq("set_tmr(0)", "off", "pr_msg(1)"), map(p("y", 0), p("C", seq()), p("D", seq(0)))),"",p(seq("set_tmr(0)", "off", "wait(1)"), map(p("y", 0), p("C", seq()), p("D", seq(0))) //
+				))));
 
 		assertTrue(fvmFacadeImpl.isInitialExecutionFragment(ts, AlternatingSequence.of(p(seq("snd_msg(0)", "off", "wait(0)"), map()), //
 				"C!0", //
@@ -83,9 +85,8 @@ public class ChannelSystemTest {
 		ChannelSystem<String, String> cs = new ChannelSystem<>(seq(pg1, pg2));
 
 		TransitionSystem<Pair<List<String>, Map<String, Object>>, String, String> ts = fvmFacadeImpl.transitionSystemFromChannelSystem(cs);
-
 		assertEquals(set(
-                p(seq("l1", "l2"), map(p("y", 1), p("C", seq(1)))),
+                p(seq("l1", "l2"), map(p("y", 1), p("C", seq(1)))),                
                 p(seq("l1", "l1"), map(p("y", 0), p("C", seq()))),
                 p(seq("l1", "l1"), map(p("y", 1), p("C", seq()))),
                 p(seq("l1", "l2"), map(p("x", 1), p("y", 1), p("C", seq(1)))),
