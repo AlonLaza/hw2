@@ -812,14 +812,7 @@ public class FvmFacade {
 		Pair<List<L>, Map<String, Object>> state_to_explore = states_to_explore.get(index);
 		ParserBasedInterleavingActDef parserBasedInterleavingActDef = new ParserBasedInterleavingActDef();
 		Set<PGTransition<L, A>> all_transitions_from_state = new HashSet<>();
-		for (ProgramGraph<L, A> pg : pgs) {
-			for (PGTransition<L, A> transition : pg.getTransitions()) {
-				if (state_to_explore.first.contains(transition.getFrom())
-						&& ConditionDef.evaluate(conditionDefs, state_to_explore.second, transition.getCondition())) {
-					all_transitions_from_state.add(transition);
-				}
-			}
-		}
+
 		// for (PGTransition transition : all_transitions_from_state) {
 		for (int i = 0; i < pgs.size(); i++) {
 			for (PGTransition<L, A> transition : pgs.get(i).getTransitions()) {
@@ -844,28 +837,29 @@ public class FvmFacade {
 						if (!states_to_explore.contains(newState)) {
 							states_to_explore.add(newState);
 						}
-					}
-					// scanning just the _C! and not the _C? to avoid duplicates
-					else /* if (((String) transition.getAction()).contains("!")) */ {
-						for (PGTransition transition_interleavead : all_transitions_from_state) {
-							if (parserBasedInterleavingActDef
-									.isOneSidedAction((String) transition_interleavead.getAction())
-									&& isOppositeActionInSameChannel((String) transition.getAction(),
-											(String) transition_interleavead.getAction())) {
-								List<L> new_state_name = channel_create_new_state_name(state_to_explore.first,
-										transition, transition_interleavead);
-								String interleaved_action = build_channel_interleave_action(
-										(String) transition.getAction(), (String) transition_interleavead.getAction());
-								Map<String, Object> new_eval = parserBasedInterleavingActDef
-										.effect(state_to_explore.second, interleaved_action);
-								Pair<List<L>, Map<String, Object>> new_state = new Pair(new_state_name, new_eval);
-								ts.addState(new_state);
-								// add transition
-								ts.addTransition(new TSTransition(state_to_explore, interleaved_action, new_state));
-								// add label
-								labelNew_TS_stateFromChannel(ts, state_to_explore, conditionDefs);
-								if (!states_to_explore.contains(new_state)) {
-									states_to_explore.add(new_state);
+					} else /* if (((String) transition.getAction()).contains("!")) */ {
+						for (int j = 0; j < pgs.size(); j++) {
+							for (PGTransition<L, A> transition_interleavead : pgs.get(j).getTransitions()) {
+								if (state_to_explore.first.get(j).equals(transition_interleavead.getFrom())&&parserBasedInterleavingActDef
+										.isOneSidedAction((String) transition_interleavead.getAction())
+										&& isOppositeActionInSameChannel((String) transition.getAction(),
+												(String) transition_interleavead.getAction())) {
+									List<L> new_state_name = channel_create_new_state_name(state_to_explore.first,
+											transition, transition_interleavead);
+									String interleaved_action = build_channel_interleave_action(
+											(String) transition.getAction(),
+											(String) transition_interleavead.getAction());
+									Map<String, Object> new_eval = parserBasedInterleavingActDef
+											.effect(state_to_explore.second, interleaved_action);
+									Pair<List<L>, Map<String, Object>> new_state = new Pair(new_state_name, new_eval);
+									ts.addState(new_state);
+									// add transition
+									ts.addTransition(new TSTransition(state_to_explore, interleaved_action, new_state));
+									// add label
+									labelNew_TS_stateFromChannel(ts, state_to_explore, conditionDefs);
+									if (!states_to_explore.contains(new_state)) {
+										states_to_explore.add(new_state);
+									}
 								}
 							}
 						}
