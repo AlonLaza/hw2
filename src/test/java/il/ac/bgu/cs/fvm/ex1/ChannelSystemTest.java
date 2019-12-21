@@ -79,6 +79,7 @@ public class ChannelSystemTest {
 		pg2.addInitalization(seq("y:=0"));
 		pg2.addInitalization(seq("y:=1"));
 
+
 		pg2.addTransition(new PGTransition<>("l1", "size(C)<5", "C!y", "l2"));
 		pg2.addTransition(new PGTransition<>("l2", "true", "C?y", "l1"));
 
