@@ -962,6 +962,19 @@ public class FvmFacade {
 		throw new java.lang.UnsupportedOperationException();
 	}
 
+	
+	/**
+	 * A translation of a Generalized Büchi Automaton (GNBA) to a Nondeterministic
+	 * Büchi Automaton (NBA).
+	 *
+	 * @param <L>    Type of resultant automaton transition alphabet
+	 * @param mulAut An automaton with a set of accepting states (colors).
+	 * @return An equivalent automaton with a single set of accepting states.
+	 */
+	public <L> Automaton<?, L> GNBA2NBA(MultiColorAutomaton<?, L> mulAut) {
+		throw new java.lang.UnsupportedOperationException();
+	}
+	
 	/**
 	 * Translation of Linear Temporal Logic (LTL) formula to a Nondeterministic
 	 * Büchi Automaton (NBA).
@@ -974,17 +987,7 @@ public class FvmFacade {
 		throw new java.lang.UnsupportedOperationException();
 	}
 
-	/**
-	 * A translation of a Generalized Büchi Automaton (GNBA) to a Nondeterministic
-	 * Büchi Automaton (NBA).
-	 *
-	 * @param <L>    Type of resultant automaton transition alphabet
-	 * @param mulAut An automaton with a set of accepting states (colors).
-	 * @return An equivalent automaton with a single set of accepting states.
-	 */
-	public <L> Automaton<?, L> GNBA2NBA(MultiColorAutomaton<?, L> mulAut) {
-		throw new java.lang.UnsupportedOperationException();
-	}
+
 
 	public <S1, S2, A, P> void CreatingInterleaveStates(
 			TransitionSystem<Pair<S1, S2>, A, P> interleave_transition_system, TransitionSystem<S1, A, P> ts1,
