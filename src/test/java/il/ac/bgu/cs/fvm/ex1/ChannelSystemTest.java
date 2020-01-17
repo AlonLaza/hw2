@@ -18,8 +18,7 @@ import il.ac.bgu.cs.formalmethodsintro.base.channelsystem.ChannelSystem;
 import il.ac.bgu.cs.formalmethodsintro.base.transitionsystem.AlternatingSequence;
 import il.ac.bgu.cs.formalmethodsintro.base.transitionsystem.TSTransition;
 import il.ac.bgu.cs.fvm.examples.AlternatingBitProtocolBuilder;
-
-
+import il.ac.bgu.cs.fvm.examples.Sokoban;
 
 public class ChannelSystemTest {
 
@@ -28,31 +27,36 @@ public class ChannelSystemTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void alternatingBitProtocol() throws Exception {
-		ChannelSystem<String,String> cs =AlternatingBitProtocolBuilder.build(); 
-		TransitionSystem<Pair<List<String>, Map<String, Object>>, String, String> ts = fvmFacadeImpl.transitionSystemFromChannelSystem(cs);
-		assertTrue(ts.getTransitions().contains(new TSTransition(p(seq("set_tmr(0)", "off", "pr_msg(1)"), map(p("y", 0), p("C", seq()), p("D", seq(0)))),"",p(seq("set_tmr(0)", "off", "wait(1)"), map(p("y", 0), p("C", seq()), p("D", seq(0))) //
-				))));
+		ChannelSystem<String, String> cs = AlternatingBitProtocolBuilder.build();
+		TransitionSystem<Pair<List<String>, Map<String, Object>>, String, String> ts = fvmFacadeImpl
+				.transitionSystemFromChannelSystem(cs);
+		assertTrue(ts.getTransitions()
+				.contains(new TSTransition(
+						p(seq("set_tmr(0)", "off", "pr_msg(1)"), map(p("y", 0), p("C", seq()), p("D", seq(0)))), "",
+						p(seq("set_tmr(0)", "off", "wait(1)"), map(p("y", 0), p("C", seq()), p("D", seq(0))) //
+						))));
 
-		assertTrue(fvmFacadeImpl.isInitialExecutionFragment(ts, AlternatingSequence.of(p(seq("snd_msg(0)", "off", "wait(0)"), map()), //
-				"C!0", //
-				p(seq("set_tmr(0)", "off", "wait(0)"), map(p("C", seq(0)))), //
-				"_tmr_on!|_tmr_on?", //
-				p(seq("wait(0)", "on", "wait(0)"), map(p("C", seq(0)))), //
-				"_timeout?|_timeout!", //
-				p(seq("snd_msg(0)", "off", "wait(0)"), map(p("C", seq(0)))), //
-				"C!0", //
-				p(seq("set_tmr(0)", "off", "wait(0)"), map(p("C", seq(0, 0)))), //
-				"C?y", //
-				p(seq("set_tmr(0)", "off", "pr_msg(0)"), map(p("y", 0), p("C", seq(0)))), //
-				"", //
-				p(seq("set_tmr(0)", "off", "snd_ack(0)"), map(p("y", 0), p("C", seq(0)))), //
-				"D!0", //
-				p(seq("set_tmr(0)", "off", "wait(1)"), map(p("y", 0), p("C", seq(0)), p("D", seq(0)))), //
-				"C?y", //
-				p(seq("set_tmr(0)", "off", "pr_msg(1)"), map(p("y", 0), p("C", seq()), p("D", seq(0)))), //
-				"", //
-				p(seq("set_tmr(0)", "off", "wait(1)"), map(p("y", 0), p("C", seq()), p("D", seq(0))) //
-				))));
+		assertTrue(fvmFacadeImpl.isInitialExecutionFragment(ts,
+				AlternatingSequence.of(p(seq("snd_msg(0)", "off", "wait(0)"), map()), //
+						"C!0", //
+						p(seq("set_tmr(0)", "off", "wait(0)"), map(p("C", seq(0)))), //
+						"_tmr_on!|_tmr_on?", //
+						p(seq("wait(0)", "on", "wait(0)"), map(p("C", seq(0)))), //
+						"_timeout?|_timeout!", //
+						p(seq("snd_msg(0)", "off", "wait(0)"), map(p("C", seq(0)))), //
+						"C!0", //
+						p(seq("set_tmr(0)", "off", "wait(0)"), map(p("C", seq(0, 0)))), //
+						"C?y", //
+						p(seq("set_tmr(0)", "off", "pr_msg(0)"), map(p("y", 0), p("C", seq(0)))), //
+						"", //
+						p(seq("set_tmr(0)", "off", "snd_ack(0)"), map(p("y", 0), p("C", seq(0)))), //
+						"D!0", //
+						p(seq("set_tmr(0)", "off", "wait(1)"), map(p("y", 0), p("C", seq(0)), p("D", seq(0)))), //
+						"C?y", //
+						p(seq("set_tmr(0)", "off", "pr_msg(1)"), map(p("y", 0), p("C", seq()), p("D", seq(0)))), //
+						"", //
+						p(seq("set_tmr(0)", "off", "wait(1)"), map(p("y", 0), p("C", seq()), p("D", seq(0))) //
+						))));
 
 	}
 
@@ -79,53 +83,70 @@ public class ChannelSystemTest {
 		pg2.addInitalization(seq("y:=0"));
 		pg2.addInitalization(seq("y:=1"));
 
-
 		pg2.addTransition(new PGTransition<>("l1", "size(C)<5", "C!y", "l2"));
 		pg2.addTransition(new PGTransition<>("l2", "true", "C?y", "l1"));
 
 		ChannelSystem<String, String> cs = new ChannelSystem<>(seq(pg1, pg2));
 
-		TransitionSystem<Pair<List<String>, Map<String, Object>>, String, String> ts = fvmFacadeImpl.transitionSystemFromChannelSystem(cs);
-		assertEquals(set(
-                p(seq("l1", "l2"), map(p("y", 1), p("C", seq(1)))),                
-                p(seq("l1", "l1"), map(p("y", 0), p("C", seq()))),
-                p(seq("l1", "l1"), map(p("y", 1), p("C", seq()))),
-                p(seq("l1", "l2"), map(p("x", 1), p("y", 1), p("C", seq(1)))),
+		TransitionSystem<Pair<List<String>, Map<String, Object>>, String, String> ts = fvmFacadeImpl
+				.transitionSystemFromChannelSystem(cs);
+		assertEquals(set(p(seq("l1", "l2"), map(p("y", 1), p("C", seq(1)))),
+				p(seq("l1", "l1"), map(p("y", 0), p("C", seq()))), p(seq("l1", "l1"), map(p("y", 1), p("C", seq()))),
+				p(seq("l1", "l2"), map(p("x", 1), p("y", 1), p("C", seq(1)))),
 				p(seq("l2", "l2"), map(p("x", 0), p("y", 0), p("C", seq()))),
-                p(seq("l2", "l2"), map(p("x", 1), p("y", 1), p("C", seq()))),
-                p(seq("l1", "l1"), map(p("x", 1), p("y", 1), p("C", seq()))),
-                p(seq("l1", "l1"), map(p("y", 0))), p(seq("l1", "l1"), map(p("y", 1))),
-				p(seq("l1", "l2"), map(p("y", 0), p("C", seq(0))))
-            ), ts.getStates());
-        
-		assertEquals(set(p(seq("l1", "l1"), map(p("y", 0))), p(seq("l1", "l1"), map(p("y", 1)))), ts.getInitialStates());
+				p(seq("l2", "l2"), map(p("x", 1), p("y", 1), p("C", seq()))),
+				p(seq("l1", "l1"), map(p("x", 1), p("y", 1), p("C", seq()))), p(seq("l1", "l1"), map(p("y", 0))),
+				p(seq("l1", "l1"), map(p("y", 1))), p(seq("l1", "l2"), map(p("y", 0), p("C", seq(0))))),
+				ts.getStates());
+
+		assertEquals(set(p(seq("l1", "l1"), map(p("y", 0))), p(seq("l1", "l1"), map(p("y", 1)))),
+				ts.getInitialStates());
 		assertEquals(set("C!x", "C!y", "C?y", "C?x"), ts.getActions());
-		assertEquals(set("C = [0]", "C = []", "x = 1", "y = 0", "x = 0", "y = 1", "C = [1]", "l1", "l2"), ts.getAtomicPropositions());
+		assertEquals(set("C = [0]", "C = []", "x = 1", "y = 0", "x = 0", "y = 1", "C = [1]", "l1", "l2"),
+				ts.getAtomicPropositions());
 		assertEquals(set(
-				transition(p(seq("l1", "l2"), map(p("y", 0), p("C", seq(0)))), "C?y", p(seq("l1", "l1"), map(p("y", 0), p("C", seq())))),
-				transition(p(seq("l1", "l2"), map(p("y", 1), p("C", seq(1)))), "C?x", p(seq("l2", "l2"), map(p("x", 1), p("y", 1), p("C", seq())))), 
-                transition(p(seq("l1", "l1"), map(p("y", 0))), "C!y", p(seq("l1", "l2"), map(p("y", 0), p("C", seq(0))))),
-				transition(p(seq("l1", "l1"), map(p("y", 0), p("C", seq()))), "C!y", p(seq("l1", "l2"), map(p("y", 0), p("C", seq(0))))), 
-                transition(p(seq("l1", "l2"), map(p("y", 0), p("C", seq(0)))), "C?x", p(seq("l2", "l2"), map(p("x", 0), p("y", 0), p("C", seq())))),
-				transition(p(seq("l1", "l2"), map(p("x", 1), p("y", 1), p("C", seq(1)))), "C?x", p(seq("l2", "l2"), map(p("x", 1), p("y", 1), p("C", seq())))), 
-                transition(p(seq("l1", "l2"), map(p("y", 1), p("C", seq(1)))), "C?y", p(seq("l1", "l1"), map(p("y", 1), p("C", seq())))),
-				transition(p(seq("l1", "l2"), map(p("x", 1), p("y", 1), p("C", seq(1)))), "C?y", p(seq("l1", "l1"), map(p("x", 1), p("y", 1), p("C", seq())))), 
-                transition(p(seq("l1", "l1"), map(p("y", 1))), "C!y", p(seq("l1", "l2"), map(p("y", 1), p("C", seq(1))))),
-				transition(p(seq("l1", "l1"), map(p("y", 1), p("C", seq()))), "C!y", p(seq("l1", "l2"), map(p("y", 1), p("C", seq(1))))), 
-                transition(p(seq("l1", "l1"), map(p("x", 1), p("y", 1), p("C", seq()))), "C!y", p(seq("l1", "l2"), map(p("x", 1), p("y", 1), p("C", seq(1))))),
-				transition(p(seq("l2", "l2"), map(p("x", 1), p("y", 1), p("C", seq()))), "C!x", p(seq("l1", "l2"), map(p("x", 1), p("y", 1), p("C", seq(1)))))), 
-               ts.getTransitions());
-        
-		assertEquals(set("y = 1", "C = [1]", "l1", "l2"), ts.getLabel(p(seq("l1", "l2"), map(p("y", 1), p("C", seq(1))))));
+				transition(p(seq("l1", "l2"), map(p("y", 0), p("C", seq(0)))), "C?y",
+						p(seq("l1", "l1"), map(p("y", 0), p("C", seq())))),
+				transition(p(seq("l1", "l2"), map(p("y", 1), p("C", seq(1)))), "C?x",
+						p(seq("l2", "l2"), map(p("x", 1), p("y", 1), p("C", seq())))),
+				transition(p(seq("l1", "l1"), map(p("y", 0))), "C!y",
+						p(seq("l1", "l2"), map(p("y", 0), p("C", seq(0))))),
+				transition(p(seq("l1", "l1"), map(p("y", 0), p("C", seq()))), "C!y",
+						p(seq("l1", "l2"), map(p("y", 0), p("C", seq(0))))),
+				transition(p(seq("l1", "l2"), map(p("y", 0), p("C", seq(0)))), "C?x",
+						p(seq("l2", "l2"), map(p("x", 0), p("y", 0), p("C", seq())))),
+				transition(p(seq("l1", "l2"), map(p("x", 1), p("y", 1), p("C", seq(1)))), "C?x",
+						p(seq("l2", "l2"), map(p("x", 1), p("y", 1), p("C", seq())))),
+				transition(p(seq("l1", "l2"), map(p("y", 1), p("C", seq(1)))), "C?y",
+						p(seq("l1", "l1"), map(p("y", 1), p("C", seq())))),
+				transition(p(seq("l1", "l2"), map(p("x", 1), p("y", 1), p("C", seq(1)))), "C?y",
+						p(seq("l1", "l1"), map(p("x", 1), p("y", 1), p("C", seq())))),
+				transition(p(seq("l1", "l1"), map(p("y", 1))), "C!y",
+						p(seq("l1", "l2"), map(p("y", 1), p("C", seq(1))))),
+				transition(p(seq("l1", "l1"), map(p("y", 1), p("C", seq()))), "C!y",
+						p(seq("l1", "l2"), map(p("y", 1), p("C", seq(1))))),
+				transition(p(seq("l1", "l1"), map(p("x", 1), p("y", 1), p("C", seq()))), "C!y",
+						p(seq("l1", "l2"), map(p("x", 1), p("y", 1), p("C", seq(1))))),
+				transition(p(seq("l2", "l2"), map(p("x", 1), p("y", 1), p("C", seq()))), "C!x",
+						p(seq("l1", "l2"), map(p("x", 1), p("y", 1), p("C", seq(1)))))),
+				ts.getTransitions());
+
+		assertEquals(set("y = 1", "C = [1]", "l1", "l2"),
+				ts.getLabel(p(seq("l1", "l2"), map(p("y", 1), p("C", seq(1))))));
 		assertEquals(set("C = []", "y = 0", "l1"), ts.getLabel(p(seq("l1", "l1"), map(p("y", 0), p("C", seq())))));
 		assertEquals(set("C = []", "y = 1", "l1"), ts.getLabel(p(seq("l1", "l1"), map(p("y", 1), p("C", seq())))));
-		assertEquals(set("x = 1", "y = 1", "C = [1]", "l1", "l2"), ts.getLabel(p(seq("l1", "l2"), map(p("x", 1), p("y", 1), p("C", seq(1))))));
-		assertEquals(set("C = []", "y = 0", "x = 0", "l2"), ts.getLabel(p(seq("l2", "l2"), map(p("x", 0), p("y", 0), p("C", seq())))));
-		assertEquals(set("C = []", "x = 1", "y = 1", "l2"), ts.getLabel(p(seq("l2", "l2"), map(p("x", 1), p("y", 1), p("C", seq())))));
-		assertEquals(set("C = []", "x = 1", "y = 1", "l1"), ts.getLabel(p(seq("l1", "l1"), map(p("x", 1), p("y", 1), p("C", seq())))));
+		assertEquals(set("x = 1", "y = 1", "C = [1]", "l1", "l2"),
+				ts.getLabel(p(seq("l1", "l2"), map(p("x", 1), p("y", 1), p("C", seq(1))))));
+		assertEquals(set("C = []", "y = 0", "x = 0", "l2"),
+				ts.getLabel(p(seq("l2", "l2"), map(p("x", 0), p("y", 0), p("C", seq())))));
+		assertEquals(set("C = []", "x = 1", "y = 1", "l2"),
+				ts.getLabel(p(seq("l2", "l2"), map(p("x", 1), p("y", 1), p("C", seq())))));
+		assertEquals(set("C = []", "x = 1", "y = 1", "l1"),
+				ts.getLabel(p(seq("l1", "l1"), map(p("x", 1), p("y", 1), p("C", seq())))));
 		assertEquals(set("y = 0", "l1"), ts.getLabel(p(seq("l1", "l1"), map(p("y", 0)))));
 		assertEquals(set("y = 1", "l1"), ts.getLabel(p(seq("l1", "l1"), map(p("y", 1)))));
-		assertEquals(set("C = [0]", "y = 0", "l1", "l2"), ts.getLabel(p(seq("l1", "l2"), map(p("y", 0), p("C", seq(0))))));
+		assertEquals(set("C = [0]", "y = 0", "l1", "l2"),
+				ts.getLabel(p(seq("l1", "l2"), map(p("y", 0), p("C", seq(0))))));
 
 	}
 }

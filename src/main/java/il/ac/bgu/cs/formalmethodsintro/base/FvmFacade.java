@@ -885,10 +885,7 @@ public class FvmFacade {
 		List<PGTransition<String, String>> transitions = generatePGTransitions(stmt, false);
 		pgGraph.setInitial(stmt.getText().toString(), true);
 		for (PGTransition<String, String> transition : transitions) {
-			if (!transition.getFrom().equals(TRUE_COND))
-				pgGraph.addTransition(transition);
-			else
-				pgGraph.addTransition(transition);
+			pgGraph.addTransition(transition);
 		}
 		return pgGraph;
 	}
@@ -906,10 +903,7 @@ public class FvmFacade {
 		List<PGTransition<String, String>> transitions = generatePGTransitions(stmt, false);
 		pgGraph.setInitial(stmt.getText().toString(), true);
 		for (PGTransition<String, String> transition : transitions) {
-			if (!transition.getFrom().equals(TRUE_COND))
-				pgGraph.addTransition(transition);
-			else
-				pgGraph.addTransition(transition);
+			pgGraph.addTransition(transition);
 		}
 		return pgGraph;
 	}
@@ -927,10 +921,7 @@ public class FvmFacade {
 		List<PGTransition<String, String>> transitions = generatePGTransitions(stmt, false);
 		pgGraph.setInitial(stmt.getText().toString(), true);
 		for (PGTransition<String, String> transition : transitions) {
-			if (!transition.getFrom().equals(TRUE_COND))
-				pgGraph.addTransition(transition);
-			else
-				pgGraph.addTransition(transition);
+			pgGraph.addTransition(transition);
 		}
 		return pgGraph;
 	}
