@@ -410,17 +410,17 @@ public class FvmFacade {
 		// Creating transitions
 		CreatingInterleaveTransitions(interleave_transition_system, ts1, ts2);
 
-//		Set<Pair<S1, S2>> reaches = reach(interleave_transition_system);
-//		Set<Pair<S1, S2>> unreachable = new HashSet<>();
-//
-//		for (Pair<S1, S2> state : interleave_transition_system.getStates()) {
-//			if (!reaches.contains(state)) {
-//				unreachable.add(state);
-//			}
-//		}
-//		for (Pair<S1, S2> state : unreachable) {
-//			interleave_transition_system.removeState(state);
-//		}
+		// Set<Pair<S1, S2>> reaches = reach(interleave_transition_system);
+		// Set<Pair<S1, S2>> unreachable = new HashSet<>();
+		//
+		// for (Pair<S1, S2> state : interleave_transition_system.getStates()) {
+		// if (!reaches.contains(state)) {
+		// unreachable.add(state);
+		// }
+		// }
+		// for (Pair<S1, S2> state : unreachable) {
+		// interleave_transition_system.removeState(state);
+		// }
 
 		// Creating the atomic Propositions
 		CreatingInterleavePropositions(interleave_transition_system, ts1, ts2);
@@ -840,8 +840,9 @@ public class FvmFacade {
 					} else /* if (((String) transition.getAction()).contains("!")) */ {
 						for (int j = 0; j < pgs.size(); j++) {
 							for (PGTransition<L, A> transition_interleavead : pgs.get(j).getTransitions()) {
-								if (state_to_explore.first.get(j).equals(transition_interleavead.getFrom())&&parserBasedInterleavingActDef
-										.isOneSidedAction((String) transition_interleavead.getAction())
+								if (state_to_explore.first.get(j).equals(transition_interleavead.getFrom())
+										&& parserBasedInterleavingActDef
+												.isOneSidedAction((String) transition_interleavead.getAction())
 										&& isOppositeActionInSameChannel((String) transition.getAction(),
 												(String) transition_interleavead.getAction())) {
 									List<L> new_state_name = channel_create_new_state_name(state_to_explore.first,
@@ -940,8 +941,65 @@ public class FvmFacade {
 	 */
 	public <Sts, Saut, A, P> TransitionSystem<Pair<Sts, Saut>, A, Saut> product(TransitionSystem<Sts, A, P> ts,
 			Automaton<Saut, P> aut) {
-		throw new java.lang.UnsupportedOperationException();
+		TransitionSystem<Pair<Sts, Saut>, A, Saut> product_ts = new TransitionSystem<Pair<Sts, Saut>, A, Saut>();
+
+		// Actions
+		for (A act : ts.getActions()) {
+			product_ts.addAction(act);
+		}
+
+		// Initial states
+		for (Sts s : ts.getInitialStates()) {
+			for (Saut q_initial : aut.getInitialStates()) {
+				// What if there is no proposition?
+				/*
+				 * if(ts.getLabel(s).isEmpty()) { for(Saut q_dest:
+				 * aut.getTransitions().get(q_initial).get(prop)) {
+				 * product_ts.addInitialState(new Pair(s,q_dest)); } }
+				 */
+				for (P prop : ts.getLabel(s)) {
+					for (Saut q_dest : aut.getTransitions().get(q_initial).get(prop)) {
+						Pair<Sts, Saut> init_state = new Pair(s, q_dest);
+						product_ts.addInitialState(init_state);
+						product_ts.addToLabel(init_state, q_dest);
+					}
+				}
+			}
+
+		}
+		
+		List<Pair<Sts, Saut>> states_to_explore = new LinkedList(product_ts.getInitialStates());
+		// Transitions and states
+		explore_transition_for_product_ts(product_ts,ts,aut,states_to_explore,0);
+		return product_ts;
 	}
+	
+	private <Sts, Saut, A, P> void explore_transition_for_product_ts(TransitionSystem<Pair<Sts, Saut>, A, Saut> product_ts,TransitionSystem<Sts, A, P> ts,
+			Automaton<Saut, P> aut,List<Pair<Sts,Saut>> states_to_explore,int index){
+		
+		Pair<Sts,Saut> state_to_explore = states_to_explore.get(index);
+			for (TSTransition<Sts, A> trans : ts.getTransitions()) {
+				if (trans.getFrom().equals(state_to_explore.first)) {
+					Sts state_dest = trans.getTo();
+					for (P prop : ts.getLabel(state_dest)) {
+						for (Saut q_dest : aut.getTransitions().get(state_to_explore.second).get(prop)) {
+							Pair<Sts, Saut> new_state = new Pair(state_dest, q_dest);
+							if (!states_to_explore.contains(new_state)) {
+								states_to_explore.add(new_state);
+							}
+							// We adding the state in the addTransition function
+							product_ts.addTransition(new TSTransition(state_to_explore, trans.getAction(), new_state));
+							product_ts.addToLabel(new_state, new_state.second);
+						}
+					}
+				}
+			}
+			if (index + 1 < states_to_explore.size()) {
+				explore_transition_for_product_ts(product_ts,ts,aut,states_to_explore,index+1);
+			}
+
+		}
+	
 
 	/**
 	 * Verify that a system satisfies an omega regular property.
@@ -962,7 +1020,6 @@ public class FvmFacade {
 		throw new java.lang.UnsupportedOperationException();
 	}
 
-	
 	/**
 	 * A translation of a Generalized Büchi Automaton (GNBA) to a Nondeterministic
 	 * Büchi Automaton (NBA).
@@ -974,7 +1031,7 @@ public class FvmFacade {
 	public <L> Automaton<?, L> GNBA2NBA(MultiColorAutomaton<?, L> mulAut) {
 		throw new java.lang.UnsupportedOperationException();
 	}
-	
+
 	/**
 	 * Translation of Linear Temporal Logic (LTL) formula to a Nondeterministic
 	 * Büchi Automaton (NBA).
@@ -986,8 +1043,6 @@ public class FvmFacade {
 	public <L> Automaton<?, L> LTL2NBA(LTL<L> ltl) {
 		throw new java.lang.UnsupportedOperationException();
 	}
-
-
 
 	public <S1, S2, A, P> void CreatingInterleaveStates(
 			TransitionSystem<Pair<S1, S2>, A, P> interleave_transition_system, TransitionSystem<S1, A, P> ts1,
