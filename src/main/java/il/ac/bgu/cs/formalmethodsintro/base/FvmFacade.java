@@ -3,6 +3,7 @@ package il.ac.bgu.cs.formalmethodsintro.base;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -957,49 +958,45 @@ public class FvmFacade {
 				 * aut.getTransitions().get(q_initial).get(prop)) {
 				 * product_ts.addInitialState(new Pair(s,q_dest)); } }
 				 */
-				for (P prop : ts.getLabel(s)) {
-					for (Saut q_dest : aut.getTransitions().get(q_initial).get(prop)) {
-						Pair<Sts, Saut> init_state = new Pair(s, q_dest);
-						product_ts.addInitialState(init_state);
-						product_ts.addToLabel(init_state, q_dest);
-					}
+				for (Saut q_dest : aut.getTransitions().get(q_initial).get(ts.getLabel(s)/* prop */)) {
+					Pair<Sts, Saut> init_state = new Pair(s, q_dest);
+					product_ts.addInitialState(init_state);
+					product_ts.addToLabel(init_state, q_dest);
 				}
 			}
 
 		}
-		
+
 		List<Pair<Sts, Saut>> states_to_explore = new LinkedList(product_ts.getInitialStates());
 		// Transitions and states
-		explore_transition_for_product_ts(product_ts,ts,aut,states_to_explore,0);
+		explore_transition_for_product_ts(product_ts, ts, aut, states_to_explore, 0);
 		return product_ts;
 	}
-	
-	private <Sts, Saut, A, P> void explore_transition_for_product_ts(TransitionSystem<Pair<Sts, Saut>, A, Saut> product_ts,TransitionSystem<Sts, A, P> ts,
-			Automaton<Saut, P> aut,List<Pair<Sts,Saut>> states_to_explore,int index){
-		
-		Pair<Sts,Saut> state_to_explore = states_to_explore.get(index);
-			for (TSTransition<Sts, A> trans : ts.getTransitions()) {
-				if (trans.getFrom().equals(state_to_explore.first)) {
-					Sts state_dest = trans.getTo();
-					for (P prop : ts.getLabel(state_dest)) {
-						for (Saut q_dest : aut.getTransitions().get(state_to_explore.second).get(prop)) {
-							Pair<Sts, Saut> new_state = new Pair(state_dest, q_dest);
-							if (!states_to_explore.contains(new_state)) {
-								states_to_explore.add(new_state);
-							}
-							// We adding the state in the addTransition function
-							product_ts.addTransition(new TSTransition(state_to_explore, trans.getAction(), new_state));
-							product_ts.addToLabel(new_state, new_state.second);
-						}
+
+	private <Sts, Saut, A, P> void explore_transition_for_product_ts(
+			TransitionSystem<Pair<Sts, Saut>, A, Saut> product_ts, TransitionSystem<Sts, A, P> ts,
+			Automaton<Saut, P> aut, List<Pair<Sts, Saut>> states_to_explore, int index) {
+
+		Pair<Sts, Saut> state_to_explore = states_to_explore.get(index);
+		for (TSTransition<Sts, A> trans : ts.getTransitions()) {
+			if (trans.getFrom().equals(state_to_explore.first)) {
+				Sts state_dest = trans.getTo();
+				for (Saut q_dest : aut.getTransitions().get(state_to_explore.second).get(ts.getLabel(state_dest))) {
+					Pair<Sts, Saut> new_state = new Pair(state_dest, q_dest);
+					if (!states_to_explore.contains(new_state)) {
+						states_to_explore.add(new_state);
 					}
+					// We adding the state in the addTransition function
+					product_ts.addTransition(new TSTransition(state_to_explore, trans.getAction(), new_state));
+					product_ts.addToLabel(new_state, new_state.second);
 				}
 			}
-			if (index + 1 < states_to_explore.size()) {
-				explore_transition_for_product_ts(product_ts,ts,aut,states_to_explore,index+1);
-			}
-
 		}
-	
+		if (index + 1 < states_to_explore.size()) {
+			explore_transition_for_product_ts(product_ts, ts, aut, states_to_explore, index + 1);
+		}
+
+	}
 
 	/**
 	 * Verify that a system satisfies an omega regular property.
@@ -1029,7 +1026,43 @@ public class FvmFacade {
 	 * @return An equivalent automaton with a single set of accepting states.
 	 */
 	public <L> Automaton<?, L> GNBA2NBA(MultiColorAutomaton<?, L> mulAut) {
-		throw new java.lang.UnsupportedOperationException();
+		Automaton<Pair<?, Integer>, L> aut = new Automaton();
+		int k = mulAut.getColors().size();
+		boolean next_aut = false;
+
+		// Initial states
+		for (Object init_state : mulAut.getInitialStates()) {
+			aut.setInitial(new Pair(init_state, 1));
+		}
+
+		// Accepetins states
+		for (Object accepeting_state : mulAut.getAcceptingStates(1)) {
+			aut.setAccepting(new Pair(accepeting_state, 1));
+		}
+
+		// Transitions and states
+		for (Entry<?, ?> entry : mulAut.getTransitions().entrySet()) {
+			Object state = entry.getKey();
+			Map<Set<L>, Set<Object>> inside_map = (Map<Set<L>, Set<Object>>) entry.getValue();
+			for (int i = 1; i <= k; i++) {
+				next_aut = false;
+				// if it's accepting state in Fi
+				if (mulAut.getAcceptingStates(i).contains(state)) {
+					next_aut = true;
+				}
+				for (Entry<Set<L>, Set<Object>> inside_entry : inside_map.entrySet()) {
+					for (Object o : inside_entry.getValue()) {
+						if (next_aut) {
+							aut.addTransition(new Pair(state, i), inside_entry.getKey(), new Pair(o, (i % k) + 1));
+						} else {
+							aut.addTransition(new Pair(state, i), inside_entry.getKey(), new Pair(o, i));
+						}
+					}
+				}
+			}
+		}
+
+		return aut;
 	}
 
 	/**

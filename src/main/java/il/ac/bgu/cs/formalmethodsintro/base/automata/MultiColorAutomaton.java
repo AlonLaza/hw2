@@ -109,7 +109,7 @@ public class MultiColorAutomaton<State, L> {
             return false;
         }
         final MultiColorAutomaton<?, ?> other = (MultiColorAutomaton<?, ?>) obj;
-        if (!Objects.equals(this.initial, other.initial)) {
+		if (!Objects.equals(this.initial, other.initial)) {
             return false;
         }
         if (!Objects.equals(this.accepting, other.accepting)) {
