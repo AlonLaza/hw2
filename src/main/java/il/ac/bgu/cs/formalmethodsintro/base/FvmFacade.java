@@ -63,7 +63,7 @@ public class FvmFacade {
 
     /**
      * Checks whether a transition system is action deterministic. I.e., if for any
-     * given p and α there exists only a single tuple (p,α,q) in →. Note that this
+     * given p and ־± there exists only a single tuple (p,־±,q) in ג†’. Note that this
      * must be true even for non-reachable states.
      *
      * @param <S> Type of states.
@@ -241,7 +241,7 @@ public class FvmFacade {
      * @param ts  Transition system of {@code s}.
      * @param c   States in {@code ts}.
      * @return All the states in {@code Post(s)} where {@code s} is a member of
-     *         {@code c}, in the context of {@code ts}.
+     * {@code c}, in the context of {@code ts}.
      * @throws StateNotFoundException if {@code s} is not a state of {@code ts}.
      */
     public <S> Set<S> post(TransitionSystem<S, ?, ?> ts, Set<S> c) {
@@ -259,7 +259,7 @@ public class FvmFacade {
      * @param s   A state in {@code ts}.
      * @param a   An action.
      * @return All the states that {@code ts} might transition to from {@code s},
-     *         when action {@code a} is selected.
+     * when action {@code a} is selected.
      * @throws StateNotFoundException if {@code s} is not a state of {@code ts}.
      */
     public <S, A> Set<S> post(TransitionSystem<S, A, ?> ts, S s, A a) {
@@ -282,7 +282,7 @@ public class FvmFacade {
      * @param c   Set of states in {@code ts}.
      * @param a   An action.
      * @return All the states that {@code ts} might transition to from any state in
-     *         {@code c}, when action {@code a} is selected.
+     * {@code c}, when action {@code a} is selected.
      */
     public <S, A> Set<S> post(TransitionSystem<S, A, ?> ts, Set<S> c, A a) {
         Set<S> post_c_a = new HashSet<>();
@@ -316,7 +316,7 @@ public class FvmFacade {
      * @param ts  Transition system of {@code s}.
      * @param c   States in {@code ts}.
      * @return All the states in {@code Pre(s)} where {@code s} is a member of
-     *         {@code c}, in the context of {@code ts}.
+     * {@code c}, in the context of {@code ts}.
      * @throws StateNotFoundException if {@code s} is not a state of {@code ts}.
      */
     public <S> Set<S> pre(TransitionSystem<S, ?, ?> ts, Set<S> c) {
@@ -334,7 +334,7 @@ public class FvmFacade {
      * @param s   A state in {@code ts}.
      * @param a   An action.
      * @return All the states that {@code ts} might transitioned from, when in
-     *         {@code s}, and the last action was {@code a}.
+     * {@code s}, and the last action was {@code a}.
      * @throws StateNotFoundException if {@code s} is not a state of {@code ts}.
      */
     public <S, A> Set<S> pre(TransitionSystem<S, A, ?> ts, S s, A a) {
@@ -357,7 +357,7 @@ public class FvmFacade {
      * @param c   Set of states in {@code ts}.
      * @param a   An action.
      * @return All the states that {@code ts} might transitioned from, when in any
-     *         state in {@code c}, and the last action was {@code a}.
+     * state in {@code c}, and the last action was {@code a}.
      * @throws StateNotFoundException if {@code s} is not a state of {@code ts}.
      */
     public <S, A> Set<S> pre(TransitionSystem<S, A, ?> ts, Set<S> c, A a) {
@@ -991,7 +991,7 @@ public class FvmFacade {
         for (TSTransition<Sts, A> trans : ts.getTransitions()) {
             if (trans.getFrom().equals(state_to_explore.first)) {
                 Sts state_dest = trans.getTo();
-                if(aut.getTransitions().get(state_to_explore.second).get(ts.getLabel(state_dest))!=null){
+                if (aut.getTransitions().get(state_to_explore.second).get(ts.getLabel(state_dest)) != null) {
                     for (Saut q_dest : aut.getTransitions().get(state_to_explore.second).get(ts.getLabel(state_dest))) {
                         Pair<Sts, Saut> new_state = new Pair(state_dest, q_dest);
                         if (!states_to_explore.contains(new_state)) {
@@ -1018,23 +1018,23 @@ public class FvmFacade {
      * @param <P>    Type of atomic propositions in the transition system, which is
      *               also the type of the automaton alphabet.
      * @param ts     The transition system.
-     * @param aut    A Büchi automaton for the words that do not satisfy the
+     * @param aut    A Bֳ¼chi automaton for the words that do not satisfy the
      *               property.
      * @return A VerificationSucceeded object or a VerificationFailed object with a
-     *         counterexample.
+     * counterexample.
      */
 
-    private <S, A, P, Saut> VerificationFailed<S> buildFailPathFromScratch(List<Pair<S,Saut>> cycle, List<Pair<S,Saut>> prefix) {
+    private <S, A, P, Saut> VerificationFailed<S> buildFailPathFromScratch(List<Pair<S, Saut>> cycle, List<Pair<S, Saut>> prefix) {
         VerificationFailed<S> result = new VerificationFailed<>();
         List<S> cycleStatesOfTs = new LinkedList<>();
-        for (Pair<S,Saut> p : cycle)
+        for (Pair<S, Saut> p : cycle)
             cycleStatesOfTs.add(p.first);
         result.setCycle(cycleStatesOfTs);
 
-        if (!prefix.isEmpty()) prefix.remove(prefix.size()-1);
+        if (!prefix.isEmpty()) prefix.remove(prefix.size() - 1);
 
         List<S> prefixStatesOfTs = new LinkedList<>();
-        for (Pair<S,Saut> p : prefix)
+        for (Pair<S, Saut> p : prefix)
             prefixStatesOfTs.add(p.first);
         result.setPrefix(prefixStatesOfTs);
         return result;
@@ -1042,18 +1042,18 @@ public class FvmFacade {
 
     public <S, A, P, Saut> VerificationResult<S> verifyAnOmegaRegularProperty(TransitionSystem<S, A, P> ts,
                                                                               Automaton<Saut, P> aut) {
-        List<Pair<S,Saut>> prefix = new LinkedList<>();
-        List<Pair<S,Saut>> cycle = new LinkedList<>();
+        List<Pair<S, Saut>> prefix = new LinkedList<>();
+        List<Pair<S, Saut>> cycle = new LinkedList<>();
         if (runDFS(product(ts, aut), aut, cycle, prefix)) return new VerificationSucceeded<>();
         // There is a fail path, We will build one
         return buildFailPathFromScratch(cycle, prefix);
     }
 
-    private <S,A,Saut,P> boolean runDFS(TransitionSystem<Pair<S, Saut>, A, Saut> productTSA, Automaton<Saut, P> aut,List<Pair<S,Saut>> cycle, List<Pair<S,Saut>> prefix ){
-        Set<Pair<S,Saut>> totalStates = new HashSet<>();
-        Set<Pair<S,Saut>> satisfiedStates = new HashSet<>();
-        Stack<Pair<S,Saut>> statesToExpose = new Stack<>();
-        for (Pair<S,Saut> state : productTSA.getInitialStates()) {
+    private <S, A, Saut, P> boolean runDFS(TransitionSystem<Pair<S, Saut>, A, Saut> productTSA, Automaton<Saut, P> aut, List<Pair<S, Saut>> cycle, List<Pair<S, Saut>> prefix) {
+        Set<Pair<S, Saut>> totalStates = new HashSet<>();
+        Set<Pair<S, Saut>> satisfiedStates = new HashSet<>();
+        Stack<Pair<S, Saut>> statesToExpose = new Stack<>();
+        for (Pair<S, Saut> state : productTSA.getInitialStates()) {
             if (!totalStates.contains(state)) {
                 // Starting exposing states in paths
                 statesToExpose.push(state);
@@ -1061,14 +1061,13 @@ public class FvmFacade {
                 boolean itsFirst = true;
                 while (!statesToExpose.isEmpty() || itsFirst) {
                     itsFirst = false;
-                    Pair<S,Saut> tmp = statesToExpose.peek();
-                    Set<Pair<S,Saut>> postTempState = post(productTSA, tmp);
+                    Pair<S, Saut> tmp = statesToExpose.peek();
+                    Set<Pair<S, Saut>> postTempState = post(productTSA, tmp);
                     if (totalStates.containsAll(postTempState)) {
                         statesToExpose.pop();
                         if (stateIsSatisfying(tmp, aut, productTSA)) satisfiedStates.add(tmp);
-                    }
-                    else {
-                        Pair<S,Saut> tempTempState = substract(postTempState, totalStates).get(0);
+                    } else {
+                        Pair<S, Saut> tempTempState = substract(postTempState, totalStates).get(0);
                         statesToExpose.push(tempTempState);
                         totalStates.add(tempTempState);
                     }
@@ -1076,7 +1075,7 @@ public class FvmFacade {
             }
         }
 
-        for (Pair<S,Saut> state : satisfiedStates) {
+        for (Pair<S, Saut> state : satisfiedStates) {
             if (runCycleTest(state, productTSA, cycle)) {
                 if (prefix.isEmpty()) {
                     boolean hasPref = false;
@@ -1096,33 +1095,31 @@ public class FvmFacade {
         return true;
     }
 
-    private <S, A, P, Saut> boolean runCycleTest(Pair<S,Saut> state, TransitionSystem<Pair<S, Saut>, A, Saut> ts,List<Pair<S,Saut>> cycle){
-        Set<Pair<S,Saut>> checked = new HashSet<>();
-        Stack<Pair<S,Saut>> toExpose = new Stack<>();
+    private <S, A, P, Saut> boolean runCycleTest(Pair<S, Saut> state, TransitionSystem<Pair<S, Saut>, A, Saut> ts, List<Pair<S, Saut>> cycle) {
+        Set<Pair<S, Saut>> checked = new HashSet<>();
+        Stack<Pair<S, Saut>> toExpose = new Stack<>();
         boolean cycleFound = false;
         toExpose.push(state);
         checked.add(state);
         do {
-            Pair<S,Saut> tmp = toExpose.peek();
-            Set<Pair<S,Saut>> postTempState = post(ts, tmp);
+            Pair<S, Saut> tmp = toExpose.peek();
+            Set<Pair<S, Saut>> postTempState = post(ts, tmp);
             if (postTempState.contains(state)) {
                 cycleFound = true;
                 if (cycle.isEmpty()) cycle.addAll(toExpose);
-            }
-            else {
+            } else {
                 if (!substract(postTempState, checked).isEmpty()) {
-                    Pair<S,Saut> tempTempState = substract(postTempState, checked).get(0);
+                    Pair<S, Saut> tempTempState = substract(postTempState, checked).get(0);
                     toExpose.push(tempTempState);
                     checked.add(tempTempState);
-                }
-                else toExpose.pop();
+                } else toExpose.pop();
             }
         } while (!toExpose.isEmpty() && !cycleFound);
         return cycleFound;
     }
 
-    private <A,S,Saut> boolean isStateFound(TransitionSystem<Pair<S, Saut>, A, Saut> productTSA,
-                                           Pair<S, Saut> stateToFind, Pair<S, Saut> initState, Stack<Pair<S,Saut>> stack) {
+    private <A, S, Saut> boolean isStateFound(TransitionSystem<Pair<S, Saut>, A, Saut> productTSA,
+                                              Pair<S, Saut> stateToFind, Pair<S, Saut> initState, Stack<Pair<S, Saut>> stack) {
         stack.push(initState);
         Set<Pair<S, Saut>> statesToExplore = new HashSet<>();
         statesToExplore.add(initState);
@@ -1143,11 +1140,11 @@ public class FvmFacade {
         return false;
     }
 
-    private <Saut,P,A,S> boolean stateIsSatisfying(Pair<S,Saut> state, Automaton<Saut, P> aut, TransitionSystem<Pair<S, Saut>, A, Saut> productTSA) {
+    private <Saut, P, A, S> boolean stateIsSatisfying(Pair<S, Saut> state, Automaton<Saut, P> aut, TransitionSystem<Pair<S, Saut>, A, Saut> productTSA) {
         Set<Saut> acceptingStates = aut.getAcceptingStates();
-        for(Saut prop : productTSA.getLabel(state)){
-            for(Saut st: acceptingStates)
-                if(st.equals(prop))
+        for (Saut prop : productTSA.getLabel(state)) {
+            for (Saut st : acceptingStates)
+                if (st.equals(prop))
                     return true;
         }
         return false;
@@ -1160,8 +1157,8 @@ public class FvmFacade {
     }
 
     /**
-     * A translation of a Generalized Büchi Automaton (GNBA) to a Nondeterministic
-     * Büchi Automaton (NBA).
+     * A translation of a Generalized Bֳ¼chi Automaton (GNBA) to a Nondeterministic
+     * Bֳ¼chi Automaton (NBA).
      *
      * @param <L>    Type of resultant automaton transition alphabet
      * @param mulAut An automaton with a set of accepting states (colors).
@@ -1195,7 +1192,7 @@ public class FvmFacade {
                 for (Entry<Set<L>, Set<Object>> inside_entry : inside_map.entrySet()) {
                     for (Object o : inside_entry.getValue()) {
                         if (next_aut) {
-                            aut.addTransition(new Pair(state, i), inside_entry.getKey(), new Pair(o, ((i+1) % k)));
+                            aut.addTransition(new Pair(state, i), inside_entry.getKey(), new Pair(o, ((i + 1) % k)));
                         } else {
                             aut.addTransition(new Pair(state, i), inside_entry.getKey(), new Pair(o, i));
                         }
@@ -1209,7 +1206,7 @@ public class FvmFacade {
 
     /**
      * Translation of Linear Temporal Logic (LTL) formula to a Nondeterministic
-     * Büchi Automaton (NBA).
+     * Bֳ¼chi Automaton (NBA).
      *
      * @param <L> Type of resultant automaton transition alphabet
      * @param ltl The LTL formula represented as a parse-tree.
@@ -1222,9 +1219,8 @@ public class FvmFacade {
     // Creating pairs of each ltl-statement and its negation
     private static <L> void createPairs(Set<Pair<LTL<L>, LTL<L>>> pairs, Set<LTL<L>> subs) {
         subs.forEach(ltl2 -> {
-            if (ltl2 instanceof TRUE)  pairs.add(new Pair<LTL<L>, LTL<L>>(ltl2, ltl2));
-            else
-            {
+            if (ltl2 instanceof TRUE) pairs.add(new Pair<LTL<L>, LTL<L>>(ltl2, ltl2));
+            else {
                 if (!subs.contains(LTL.not(ltl2))) {
                     if (ltl2 instanceof Not) pairs.add(new Pair<LTL<L>, LTL<L>>(ltl2, ((Not<L>) ltl2).getInner()));
                     else pairs.add(new Pair<LTL<L>, LTL<L>>(ltl2, LTL.not(ltl2)));
@@ -1236,7 +1232,7 @@ public class FvmFacade {
     // Creating color for each until-ltl
     private static <L> void mapColors(Set<LTL<L>> subs, Map<LTL<L>, Integer> colorsMap, int nextColor) {
         for (LTL<L> ltl2 : subs) {
-            if(ltl2 instanceof Until){
+            if (ltl2 instanceof Until) {
                 colorsMap.put(ltl2, nextColor);
                 nextColor++;
             }
@@ -1259,7 +1255,7 @@ public class FvmFacade {
         initial.add(ltl);
         Set<Set<LTL<L>>> initialStates = createConsistenciesBStates(initial, pairs);
 
-        for(Set<LTL<L>> s : initialStates)
+        for (Set<LTL<L>> s : initialStates)
             gnbaAuto.setInitial(s);
 
         Set<Set<LTL<L>>> currStates = new HashSet<>(initialStates);
@@ -1267,30 +1263,29 @@ public class FvmFacade {
         Set<Set<LTL<L>>> allStates = new HashSet<>(initialStates);
         boolean itsFirst = true;
 
-        while(currStates.size() > 0 || itsFirst) {
+        while (currStates.size() > 0 || itsFirst) {
             itsFirst = false;
-            for(Set<LTL<L>> cur_s : currStates){
+            for (Set<LTL<L>> cur_s : currStates) {
                 Set<Set<LTL<L>>> nextStates = LTLNextStates(cur_s, pairs);
                 Set<L> symbol = new HashSet<L>();
                 for (LTL<L> ltl2 : cur_s) {
-                    if (ltl2 instanceof AP) symbol.add(((AP<L>)ltl2).getName());
+                    if (ltl2 instanceof AP) symbol.add(((AP<L>) ltl2).getName());
                 }
                 nextStates.forEach(s -> gnbaAuto.addTransition(cur_s, symbol, s));
                 nextStates.removeAll(allStates);
                 newStates.addAll(nextStates);
                 allStates.addAll(nextStates);
                 List<Integer> colors = new ArrayList<Integer>();
-                for(LTL<L> ltl2 : cur_s) {
-                    if (ltl2 instanceof Not){
-                        LTL<L> until = ((Not <L>) ltl2).getInner();
-                        if (until instanceof Until){
+                for (LTL<L> ltl2 : cur_s) {
+                    if (ltl2 instanceof Not) {
+                        LTL<L> until = ((Not<L>) ltl2).getInner();
+                        if (until instanceof Until) {
                             Integer color = colorsMap.get(until);
                             colors.add(color);
                         }
-                    }
-                    else if (ltl2 instanceof Until){
+                    } else if (ltl2 instanceof Until) {
                         LTL<L> right = ((Until<L>) ltl2).getRight();
-                        if (cur_s.contains(right)){
+                        if (cur_s.contains(right)) {
                             Integer color = colorsMap.get(ltl2);
                             colors.add(color);
                         }
@@ -1345,12 +1340,12 @@ public class FvmFacade {
     }
 
     private static <L> void createOptionalStates(Set<Set<LTL<L>>> currStates, Set<Pair<LTL<L>, LTL<L>>> subs, Set<Set<LTL<L>>> newOptionalStates, Set<Set<LTL<L>>> optionalStates) {
-        for(Set<LTL<L>> s : currStates) {
+        for (Set<LTL<L>> s : currStates) {
             boolean isMax = true;
-            for(Pair<LTL<L>, LTL<L>> ltlPair : subs) {
+            for (Pair<LTL<L>, LTL<L>> ltlPair : subs) {
                 LTL<L> first = ltlPair.getFirst();
                 LTL<L> second = ltlPair.getSecond();
-                if ((!s.contains(first)) && (!s.contains(second))){
+                if ((!s.contains(first)) && (!s.contains(second))) {
                     isMax = false;
                     Set<LTL<L>> newState_1 = new HashSet<>(s);
                     Set<LTL<L>> newState_2 = new HashSet<>(s);
@@ -1361,7 +1356,7 @@ public class FvmFacade {
                     break;
                 }
             }
-            if(isMax) optionalStates.add(s);
+            if (isMax) optionalStates.add(s);
         }
     }
 
@@ -1372,7 +1367,7 @@ public class FvmFacade {
         Set<Set<LTL<L>>> newOptionalStates = new HashSet<>();
         boolean itsFirst = true;
 
-        while(currStates.size() > 0 || itsFirst) {
+        while (currStates.size() > 0 || itsFirst) {
             itsFirst = false;
             createOptionalStates(currStates, subs, newOptionalStates, optionalStates);
             currStates = newOptionalStates;
@@ -1412,9 +1407,10 @@ public class FvmFacade {
     private static <L> Set<LTL<L>> checkConsistencies(Set<LTL<L>> state, LTL<L> ltl) {
         state.add(ltl);
         // Check Logic
-        for(LTL<L> ltlOfState : state) {
+        for (LTL<L> ltlOfState : state) {
             if (ltlOfState instanceof And) {
-                if (state.contains(getNegateLtl(((And<L>) ltlOfState).getLeft())) || state.contains(getNegateLtl(((And<L>) ltlOfState).getRight()))) return null;
+                if (state.contains(getNegateLtl(((And<L>) ltlOfState).getLeft())) || state.contains(getNegateLtl(((And<L>) ltlOfState).getRight())))
+                    return null;
             } else if (ltlOfState instanceof Not) {
                 Not<L> notLtl = (Not<L>) ltlOfState;
                 LTL<L> inner = notLtl.getInner();
@@ -1429,12 +1425,12 @@ public class FvmFacade {
         }
 
         // Check Locality
-        for(LTL<L> ltlOfState : state) {
+        for (LTL<L> ltlOfState : state) {
             if (ltlOfState instanceof Until) {
                 Until<L> until = (Until<L>) ltlOfState;
                 LTL<L> not_left = getNegateLtl(until.getLeft());
                 LTL<L> not_right = getNegateLtl(until.getRight());
-                if(state.contains(not_left) && state.contains(not_right)) return null;
+                if (state.contains(not_left) && state.contains(not_right)) return null;
             } else if (ltlOfState instanceof Not) {
                 Not<L> not = (Not<L>) ltlOfState;
                 LTL<L> inner = not.getInner();
@@ -1450,7 +1446,7 @@ public class FvmFacade {
 
     // Bringing the opposite of the given ltl
     private static <L> LTL<L> getNegateLtl(LTL<L> ltl) {
-        if(ltl instanceof Not) return ((Not<L>) ltl).getInner();
+        if (ltl instanceof Not) return ((Not<L>) ltl).getInner();
         else return LTL.not(ltl);
     }
 
@@ -1868,15 +1864,128 @@ public class FvmFacade {
 
     /**
      * Verify that a system satisfies an LTL formula under fairness conditions.
-     * @param ts Transition system
-     * @param fc Fairness condition
+     *
+     * @param ts  Transition system
+     * @param fc  Fairness condition
      * @param ltl An LTL formula
-     * @param <S>  Type of states in the transition system
+     * @param <S> Type of states in the transition system
      * @param <A> Type of actions in the transition system
      * @param <P> Type of atomic propositions in the transition system
      * @return a VerificationSucceeded object or a VerificationFailed object with a counterexample.
      */
-    public <S, A, P> VerificationResult<S> verifyFairLTLFormula(TransitionSystem<S, A, P> ts, FairnessCondition<A> fc, LTL<P> ltl){
-        throw new java.lang.UnsupportedOperationException();
+    public <S, A, P> VerificationResult<Pair<S, A>> verifyFairLTLFormula(TransitionSystem<S, A, P> ts, FairnessCondition<A> fc, LTL<P> ltl) {
+        TransitionSystem<Pair<S, A>, A, P> ts_tag = get_ts_tag(ts);
+        LTL<P> modifiedLtl = createModifiedLtl(fc, ltl);
+        return verifyAnOmegaRegularProperty(ts_tag, LTL2NBA(modifiedLtl));
+    }
+
+
+    private <S, A, P> TransitionSystem<Pair<S, A>, A, P> get_ts_tag(TransitionSystem<S, A, P> ts) {
+        TransitionSystem<Pair<S, A>, A, P> new_ts = new TransitionSystem();
+        // States
+        for (S state : ts.getStates()) {
+            for (A act : ts.getActions()) {
+                Pair<S, A> new_state = new Pair(state, act);
+                if (ts.getInitialStates().contains(state)) {
+                    new_ts.addInitialState(new_state);
+                } else {
+                    new_ts.addState(new_state);
+                }
+                for (P prop : ts.getLabel(state)) {
+//					if(prop=="") {
+//						continue;
+//					}
+                    new_ts.addToLabel(new_state, prop);
+
+                }
+                new_ts.addToLabel(new_state, (P) ("t(" + act + ")"));
+                for (TSTransition trans : ts.getTransitions()) {
+                    if (trans.getFrom().equals(state)) {
+                        new_ts.addToLabel(new_state, (P) ("e(" + trans.getAction() + ")"));
+                    }
+                }
+            }
+        }
+
+        // Transitions
+        for (TSTransition trans : ts.getTransitions()) {
+            for (Pair<S, A> state : new_ts.getStates()) {
+                if (trans.getFrom().equals(state.first)) {
+                    TSTransition new_trans = new TSTransition(state, trans.getAction(),
+                            new Pair(trans.getTo(), trans.getAction()));
+                    new_ts.addTransition(new_trans);
+                }
+            }
+        }
+
+        return new_ts;
+    }
+
+    public <P, A> LTL<P> createModifiedLtl(FairnessCondition<A> fc, LTL<P> ltl) {
+        Set<Set<A>> uncond = fc.getUnconditional();
+        Set<Set<A>> strong = fc.getStrong();
+        Set<Set<A>> weak = fc.getWeak();
+
+        // UNCOND
+        LTL<String> finalUncondActionGroup = new TRUE<String>();
+        for (Set<A> setOfActions : uncond) {
+            LTL<String> uncondLTL = new TRUE<String>();
+            for (A action : setOfActions) {
+                // De morgan -> a or b = !!(a or b) = !(!a and !b)
+                uncondLTL = new Not<String>(new And<String>(new Not<String>(new AP<String>("t(" + (String)action + ")")), new Not<>(uncondLTL)));
+            }
+            LTL<String> newUncondActionGroup = createAlwaysEventuallyLTL(uncondLTL);
+            finalUncondActionGroup = new And(newUncondActionGroup, finalUncondActionGroup);
+        }
+
+        // STRONG
+        LTL<String> finalStrongActionGroup = new TRUE<String>();
+        for (Set<A> setOfActions : strong) {
+            LTL<String> strongEnabledLTL = new TRUE<String>();
+            LTL<String> strongTriggeredLTL = new TRUE<String>();
+            for (A action : setOfActions) {
+                // De morgan -> a or b = !!(a or b) = !(!a and !b)
+                strongEnabledLTL = new Not<String>(new And<String>(new Not<String>(new AP<String>("e(" + (String)action + ")")), new Not<>(strongEnabledLTL)));
+            }
+            for (A action : setOfActions) {
+                // De morgan -> a or b = !!(a or b) = !(!a and !b)
+                strongTriggeredLTL = new Not<String>(new And<String>(new Not<String>(new AP<String>("t(" + (String)action + ")")), new Not<>(strongTriggeredLTL)));
+            }
+            // If Then.. (a -> b) equals (!a or b =  !!(!a or b) = !(a and !b))
+            LTL<String> newStrongActionGroup = new Not<String>(new And<String>(createAlwaysEventuallyLTL(strongEnabledLTL), new Not<String>(createAlwaysEventuallyLTL(strongTriggeredLTL))));
+            finalStrongActionGroup = new And(newStrongActionGroup, finalStrongActionGroup);
+        }
+
+        // WEAK
+        LTL<String> finalWeakActionGroup = new TRUE<String>();
+        for (Set<A> setOfActions : weak) {
+            LTL<String> weakEnabledLTL = new TRUE<String>();
+            LTL<String> weakTriggeredLTL = new TRUE<String>();
+            for (A action : setOfActions) {
+                // De morgan -> a or b = !!(a or b) = !(!a and !b)
+                weakEnabledLTL = new Not<String>(new And<String>(new Not<String>(new AP<String>("e(" + (String)action + ")")), new Not<>(weakEnabledLTL)));
+            }
+            for (A action : setOfActions) {
+                // De morgan -> a or b = !!(a or b) = !(!a and !b)
+                weakTriggeredLTL = new Not<String>(new And<String>(new Not<String>(new AP<String>("t(" + (String)action + ")")), new Not<>(weakTriggeredLTL)));
+            }
+            // If Then.. (a -> b) equals (!a or b =  !!(!a or b) = !(a and !b))
+            LTL<String> newWeakActionGroup = new Not<String>(new And<String>(createEventuallyAlwaysLTL(weakEnabledLTL), new Not<String>(createAlwaysEventuallyLTL(weakTriggeredLTL))));
+            finalWeakActionGroup = new And(newWeakActionGroup, finalWeakActionGroup);
+        }
+
+        LTL<String> conjunctionFinalFairLtl = new And(finalUncondActionGroup, new And(finalStrongActionGroup, finalWeakActionGroup));
+        LTL<String> finalFairLtl = new Not<String>(new And<String>(conjunctionFinalFairLtl, new Not<String>((LTL<String>)ltl)));
+        return (LTL<P>)finalFairLtl;
+    }
+
+    public <P> LTL<P> createAlwaysEventuallyLTL(LTL<P> ltl) {
+        return new Not<>(new Until<>(new TRUE<>(),
+                new Not<>(new Until<>(new TRUE<>(), ltl))));
+    }
+
+    public <P> LTL<P> createEventuallyAlwaysLTL(LTL<P> ltl) {
+        return new Until<>(new TRUE<>(),
+                new Not<>(new Until<>(new TRUE<>(), new Not<>(ltl))));
     }
 }
